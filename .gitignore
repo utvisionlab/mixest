@@ -20,7 +20,7 @@ helpsearch/
 
 
 # auto-generated documentation 
-doc/public/
+#doc/public/
 
 # published html except for manually-created ones
 *.html
