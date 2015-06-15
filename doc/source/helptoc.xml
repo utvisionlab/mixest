@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding="utf-8"?>
+
+<toc version="2.0">
+    <tocitem target="index.html">MixEst Toolbox
+        <tocitem target="user_guide.html" image="HelpIcon.USER_GUIDE">User Guide
+        </tocitem>
+        <tocitem target="api/index.html" image="HelpIcon.FUNCTION">API Reference
+        </tocitem>
+        <tocitem target="examples/index.html" image="HelpIcon.EXAMPLES">Examples
+        </tocitem>
+        <tocitem target="developer_guide.html" image="HelpIcon.USER_GUIDE">Developer Guide
+        </tocitem>
+        <tocitem target="http://visionlab.ut.ac.ir/mixest" image="$toolbox/matlab/icons/webicon.gif">Online Web Site
+        </tocitem>
+    </tocitem>
+</toc>

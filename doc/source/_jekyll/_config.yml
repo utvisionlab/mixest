@@ -1,0 +1,9 @@
+# Site settings
+title: MixEst
+description: >
+  MixEst - The Mixture-Model Estimation Toolbox
+
+# Build settings
+destination: ../../public
+markdown: kramdown
+highlighter: rouge #false # temporarily added because of pygments.rb issue on Windows
