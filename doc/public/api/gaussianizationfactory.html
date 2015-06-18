@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/api/gaussianizationfactory.html">
+
+    <title>gaussianizationfactory | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">gaussianizationfactory
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//api/index.html">api</a></li>
+			
+		
+	
+		
+			
+				<li class="active">gaussianizationfactory</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><h2><tt>gaussianizationfactory</tt><a id="1"></a></h2><p>Construct a Gaussianization distribution structure</p><p><b>Syntax</b></p><pre class="language-matlab">D = gaussianization(LayerD, num)
+D = gaussianization(LayerD)
+</pre><p><b>Description</b></p><p><tt>D = gaussianization(LayerD, num)</tt> returns a structure representing a gaussianization distribution. <tt>LayerD</tt> is a distribution structure defining gaussianization layer distribution type, and <tt>num</tt> is the number gaussianization layers</p><p><tt>D = gaussianization(LayerD)</tt> where <tt>LayerD</tt> is a cell array of distribution structures defined on the same data space, constructs a heterogeneous gaussianization distribution <tt>D</tt> where each layer may be of a different distribution type.</p><p><b>Distribution Parameters</b></p><div><ul><li><b><tt>D</tt></b> (<tt>num-by-1</tt> cell array of distribution parameter structures) : Contains the parameters for each layer.</li></ul></div><p><b>Probability Density Function</b></p><p>The distribution is defined to be whitened Gaussian distribution in the transformed domain. The transformation is given by :</p><p><img src="gaussianizationfactory_eq24429.png" alt="$$ y= G^{-1}(F_{num}(...G^{-1}(F_2(G^{-1}(F_1(x))))))) $$"></p><p>where <img src="gaussianizationfactory_eq63720.png" alt="$num$"> is the number oflayers, <img src="gaussianizationfactory_eq33287.png" alt="$F_k$"> represents the CDF of kth layer <img src="gaussianizationfactory_eq60719.png" alt="$G^{-1}$"> is the inverse CDF of Gaussian. Note that <img src="gaussianizationfactory_eq14192.png" alt="$G^{-1}(F_k(.))$"> is computer together as Gaussianization for each layer</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% Construct a Gaussianization distribution of two layers</span>
+D =
+<span class="comment">% Build a parameter structure for it:</span>
+theta{1} =
+theta{2} =
+<span class="comment">% Plot the PDF:</span>
+x = 0:0.1:10;
+y = 0:0.1:10;
+surf
+</pre><p><img vspace="5" hspace="5" src="img/...png" alt=""> </p><p>For more detailes look at the following paper: Chen, S. S., &amp; Gopinath, R. A. (2000). Gaussianization.</p><h2><tt>name</tt><a id="2"></a></h2><p>See <a href="doc_distribution_common.html#1">distribution structure common members</a>.</p><h2><tt>M</tt><a id="4"></a></h2><p>See <a href="doc_distribution_common.html#2">distribution structure common members</a>.</p><h2><tt>num</tt><a id="5"></a></h2><p>Number of layers</p><p><b>Syntax</b></p><pre class="language-matlab">num = D.num()
+</pre><p><b>Description</b></p><p><tt>num = D.num()</tt> returns the number of layers in the Gaussianization distribution <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><h2><tt>layer</tt><a id="6"></a></h2><p>layer distributions</p><p><b>Syntax</b></p><pre class="language-matlab">D_k = D.layer(idx)
+</pre><p><b>Description</b></p><p><tt>D_k = D.layer(idx)</tt> where <tt>idx</tt> is the index of a layer, gives the layer distribution structure at <tt>idx</tt>.</p><p><tt>D_k = D.layer(idx)</tt> where <tt>idx</tt> is an index vector with more than one element, returns a cell array of the distribution structures indexed in <tt>idx</tt>.</p><h2><tt>addlayer</tt><a id="7"></a></h2><p>Add a Gaussianization layer (to the variable layers)</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.addlayer(CmptD)
+[newD, newtheta] = D.addlayer(CmptD, theta, CmptTheta)
+</pre><p><b>Description</b></p><p><tt>newD = D.addlayer(CmptD)</tt> returns <tt>newD</tt>, a Gaussianization distribution with the same layers as <tt>D</tt> plus the new variable layer distribution <tt>CmptD</tt>.</p><p><tt>[newD, newtheta] = D.addlayer(CmptD, theta, CmptTheta)</tt> also returns <tt>newtheta</tt>, the parameters for <tt>newD</tt>, given <tt>theta</tt>, the parameters for <tt>D</tt>, and <tt>CmptTheta</tt>, the parameters for <tt>CmptD</tt>.</p><h2><tt>removelayer</tt><a id="8"></a></h2><p>Remove a layer</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.removelayer(idx)
+[newD, newtheta] = D.removelayer(idx, theta)
+</pre><p><b>Description</b></p><p><tt>newD = D.removelayer(idx)</tt> returns <tt>newD</tt>, a Gaussianization distribution the same as <tt>D</tt> where the layer at index <tt>idx</tt> is removed from its layers.</p><p><tt>[newD, newtheta] = D.removelayer(idx, theta)</tt> also returns <tt>newtheta</tt>, the parameters for <tt>newD</tt>, given <tt>theta</tt>, the parameters for <tt>D</tt>.</p><h2><tt>dim</tt><a id="9"></a></h2><p>See <a href="doc_distribution_common.html#3">distribution structure common members</a>.</p><h2><tt>datadim</tt><a id="10"></a></h2><p>See <a href="doc_distribution_common.html#4">distribution structure common members</a>.</p><h2><tt>ll</tt><a id="11"></a></h2><p>See <a href="doc_distribution_common.html#5">distribution structure common members</a>.</p><h2><tt>llvec</tt><a id="12"></a></h2><p>See <a href="doc_distribution_common.html#6">distribution structure common members</a>.</p><h2><tt>llgrad</tt><a id="13"></a></h2><p>See <a href="doc_distribution_common.html#7">distribution structure common members</a>.</p><h2><tt>llgraddata</tt><a id="14"></a></h2><p>See <a href="doc_distribution_common.html#8">distribution structure common members</a>.</p><h2><tt>cdf</tt><a id="15"></a></h2><p>See <a href="doc_distribution_common.html#9">distribution structure common members</a>.</p><h2><tt>pdf</tt><a id="16"></a></h2><p>See <a href="doc_distribution_common.html#10">distribution structure common members</a>.</p><h2><tt>sample</tt><a id="17"></a></h2><p>See <a href="doc_distribution_common.html#11">distribution structure common members</a>.</p><h2><tt>randparam</tt><a id="18"></a></h2><p>See <a href="doc_distribution_common.html#12">distribution structure common members</a>.</p><h2><tt>init</tt><a id="19"></a></h2><p>See <a href="doc_distribution_common.html#13">distribution structure common members</a>.</p><h2><tt>estimatedefault</tt><a id="20"></a></h2><p>Default estimation function for Gaussianization distribution. This function implements the expectation maximization (EM) method.</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.estimatedefault(data)
+theta = D.estimatedefault(data, options)
+[theta, D] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info, options] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>theta = D.estimatedefault(data)</tt> returns estimated parameters for the distribution <tt>D</tt>, using <tt>data</tt>.</p><p><tt>theta = D.estimatedefault(data, options)</tt> utilizes applicable options from the <tt>options</tt> structure in the estimation procedure.</p><p><tt>[theta, D] = D.estimatedefault(...)</tt> also returns <tt>D</tt>, the distribution structure for which <tt>theta</tt> is applicable. (This is the same as the distribution structure <tt>D</tt> from which you called <tt>estimate</tt>, and so it should not normally be used. The purpose of including it in the output is to maintain compatibility with other estimation functions).</p><p><tt>[theta, D, info] = D.estimatedefault(...)</tt> also returns <tt>info</tt>, a structure array containing information about successive iterations performed by iterative estimation functions.</p><p><tt>[theta, D, info, options] = D.estimatedefault(...)</tt> also returns the effective <tt>options</tt> used, so you can see what default values the function used on top of the options you possibly specified.</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>. You may also want to read about <a href="../estimation_options.html"><tt>options</tt></a> or <a href="../estimation_statistics_structure.html"><tt>info</tt></a> arguments.</p><p><b>Available Options</b></p><p>This function supports the following options from the options described in <a href="../estimation_options.html">estimation options</a>.</p><div><ul><li><b><tt>theta0</tt></b></li><li><b><tt>verbosity</tt></b></li><li><b><tt>plotCost</tt></b></li><li><b><tt>crossVal</tt></b></li><li><b><tt>minIter</tt></b></li><li><b><tt>maxIter</tt></b></li><li><b><tt>maxTime</tt></b></li><li><b><tt>tolCost</tt></b></li><li><b><tt>tolCostDiff</tt></b></li><li><b><tt>statsfun</tt></b></li><li><b><tt>stopfun</tt></b></li></ul></div><p><b>Returned <tt>info</tt> fields</b></p><p>This function puts the following fields in the returned <tt>info</tt> structure array. You can read more about them in our documentation on <a href="../estimation_statistics_structure.html">estimation statistics structure</a>.</p><div><ul><li><b><tt>iter</tt></b></li><li><b><tt>cost</tt></b></li><li><b><tt>time</tt></b></li><li><b><tt>cvCost</tt></b></li></ul></div><h2><tt>penalizerparam</tt><a id="21"></a></h2><p>See <a href="doc_distribution_common.html#15">distribution structure common members</a>.</p><p><b>Penalizer Info</b></p><p>The default penalizer for the Gaussianization distribution is the sum of the default penalizers of its layers.</p><h2><tt>penalizercost</tt><a id="22"></a></h2><p>See <a href="doc_distribution_common.html#16">distribution structure common members</a>.</p><h2><tt>penalizergrad</tt><a id="23"></a></h2><p>See <a href="doc_distribution_common.html#17">distribution structure common members</a>.</p><h2><tt>sumparam</tt><a id="24"></a></h2><p>See <a href="doc_distribution_common.html#18">distribution structure common members</a>.</p><h2><tt>scaleparam</tt><a id="25"></a></h2><p>See <a href="doc_distribution_common.html#19">distribution structure common members</a>.</p><h2><tt>sumgrad</tt><a id="26"></a></h2><p>See <a href="doc_distribution_common.html#20">distribution structure common members</a>.</p><h2><tt>scalegrad</tt><a id="27"></a></h2><p>See <a href="doc_distribution_common.html#21">distribution structure common members</a>.</p><h2><tt>entropy</tt><a id="28"></a></h2><p>See <a href="doc_distribution_common.html#22">distribution structure common members</a>.</p><h2><tt>kl</tt><a id="29"></a></h2><p>See <a href="doc_distribution_common.html#23">distribution structure common members</a>.</p><h2><tt>AICc</tt><a id="30"></a></h2><p>See <a href="doc_distribution_common.html#24">distribution structure common members</a>.</p><h2><tt>BIC</tt><a id="31"></a></h2><p>See <a href="doc_distribution_common.html#25">distribution structure common members</a>.</p><h2><tt>display</tt><a id="32"></a></h2><p>See <a href="doc_distribution_common.html#26">distribution structure common members</a>.</p><h2><tt>visualize</tt><a id="33"></a></h2></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>gaussianizationfactory</tt></a></li><li><a class="list-group-item" href="#2"><tt>name</tt></a></li><li><a class="list-group-item" href="#4"><tt>M</tt></a></li><li><a class="list-group-item" href="#5"><tt>num</tt></a></li><li><a class="list-group-item" href="#6"><tt>layer</tt></a></li><li><a class="list-group-item" href="#7"><tt>addlayer</tt></a></li><li><a class="list-group-item" href="#8"><tt>removelayer</tt></a></li><li><a class="list-group-item" href="#9"><tt>dim</tt></a></li><li><a class="list-group-item" href="#10"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#11"><tt>ll</tt></a></li><li><a class="list-group-item" href="#12"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#13"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#14"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#15"><tt>cdf</tt></a></li><li><a class="list-group-item" href="#16"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#17"><tt>sample</tt></a></li><li><a class="list-group-item" href="#18"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#19"><tt>init</tt></a></li><li><a class="list-group-item" href="#20"><tt>estimatedefault</tt></a></li><li><a class="list-group-item" href="#21"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#22"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#23"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#24"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#25"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#26"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#27"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#28"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#29"><tt>kl</tt></a></li><li><a class="list-group-item" href="#30"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#31"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#32"><tt>display</tt></a></li><li><a class="list-group-item" href="#33"><tt>visualize</tt></a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>

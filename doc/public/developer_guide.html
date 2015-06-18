@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/developer_guide.html">
+
+    <title>Developer Guide | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Developer Guide
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li class="active">developer guide</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><!--introduction--><p><b>Note:</b> This document is a draft.</p><p>Here are some hints and guidelines for MixEst developers.</p><!--/introduction--><h2>Coding<a id="1"></a></h2><div><ul><li>Take a look at <a href="https://www.math.tu-berlin.de/fileadmin/i26/download/AG_ModNumDiff/FG_NumMath/seminars/toolseminar/poloni_slides.pdf">"Unit tests in Matlab and other good coding practices"</a> by Federico Poloni.</li><li>Please Don't use the tilde (<tt>~</tt>) operator for unused function outputs (as in <tt>[~, ...] = function(...);</tt>). This is not compatible with MATLAB versions prior to R2009b. Instead, use the context menu in the MATLAB editor to suppress the warning on the line: <tt>[unused, ...] = function(...); %#ok&lt;ASGLU&gt;</tt>.</li><li>Use <a href="api/mxe_readdata.html"><tt>mxe_readdata</tt></a> before accessing given <tt>data</tt>.</li></ul></div><h2>Estimation functions<a id="2"></a></h2><div><ul><li>Always check <tt>options.verbosity</tt> before outputting informative text.</li><li>Use <tt>mxe_inneroptions</tt> to get options for your inner estimations (if any).</li></ul></div><h2>Structures in place of objects<a id="3"></a></h2><div><ul><li>Since we dislike the object-orientation of MATLAB in many ways, we use structures created by factory functions in place of objects. This way, the object's properties are the variables defined in the workspace of the factory function and the object's methods are exposed as fields containig a handle to a nested function within the factory function.</li><li>To give access to read-only properties, use functions (getter methods).</li><li>Methods that need to change some properties from the current object, and return the result as a new object, should call the factory function using conventional special inputs. This is required in order to have a new workspace for the new properties. See the codes of the <tt>gammafactory</tt> and its <tt>fixate</tt> function for an example of using this technique.</li></ul></div><h2>Documenting<a id="4"></a></h2><div><ul><li>We use the <tt>publish</tt> function to generate MixEst documentations. See <a href="http://mathworks.com/help/matlab/matlab_prog/marking-up-matlab-comments-for-publishing.html">Publishing Markup</a> in MATLAB's documentation to get familiar with the markup.</li><li>A useful shortcut key is <tt>Ctrl+J</tt> which wraps the doc text automatically.</li><li>Please write the documentation for your codes right after coding. The descriptions need not be lengthy. Just copy the documentation from a similar function and paste it above yours and then change it as needed. But never let an irrelevant documentation remain there.</li></ul></div><h2>Technical details<a id="5"></a></h2><div><ul><li>Compiling the documentation is done in two steps: First, by running <tt>mxe_publishdocs</tt>, the M-files are published using a special style-sheet to prepare them for <a href="http://jekyllrb.com">Jekyll</a>. The published files are put in the Jekyll source folder (<tt>mixest/doc/source/_jekyll</tt>). The next step is to build them using Jekyll (<tt>jekyll build</tt>).</li><li>The main documentation files are at <tt>mixest/doc/source</tt> and are published to the Jekyll source folder. The API reference is extracted from all the M-files under <tt>mixest/mixest</tt> and is all put into a sub-directory named <tt>api</tt> beside the published main docs. Therefore, to give a link to a page in the API reference from a main documentation, use the <tt>api/</tt> prefix in the link like <tt>api/mixturefactory.html</tt>. To give a link to a page in the main documentation from a function documentation, use the <tt>../</tt> prefix in the link like <tt>../estimation_options.html</tt>.</li><li>We don't run the codes when publishing. You should add any results (like plot images) manually. Put the images in a sub-directory <tt>img</tt> beside the source documentation files and add the <tt>img/</tt> prefix to the file name in the markup for the image.</li></ul></div></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1">Coding</a></li><li><a class="list-group-item" href="#2">Estimation functions</a></li><li><a class="list-group-item" href="#3">Structures in place of objects</a></li><li><a class="list-group-item" href="#4">Documenting</a></li><li><a class="list-group-item" href="#5">Technical details</a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/site.js"></script>
+
+  </body>
+
+</html>

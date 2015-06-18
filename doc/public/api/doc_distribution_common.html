@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/api/doc_distribution_common.html">
+
+    <title>Distribution Structure Common Members | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Distribution Structure Common Members
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//api/index.html">api</a></li>
+			
+		
+	
+		
+			
+				<li class="active">doc distribution common</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><!--introduction--><p>MixEst distribution structures expose functionality through structure fields which are (mostly) function handles. Here is the list of common fields available in all distributions (in no special order).</p><!--/introduction--><h2><tt>name</tt><a id="1"></a></h2><p>Distribution name</p><p><b>Syntax</b></p><pre class="language-matlab">str = D.name()
+</pre><p><b>Description</b></p><p><tt>str = D.name()</tt> returns the name of the distribution <tt>D</tt> as a string.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><pre class="language-matlab">D = mvnfactory(1);
+D.name()
+</pre><pre>ans =
+     mvn</pre><h2><tt>M</tt><a id="2"></a></h2><p>Distribution parameter manifold.</p><p><b>Syntax</b></p><pre class="language-matlab">D.M
+</pre><p><b>Example</b></p><pre class="language-matlab">D = mvnfactory(2);
+D.M.name()
+</pre><pre>ans =
+     Product manifold: [mu: Euclidean space R^(2x1)] x [sigma: SPD manifold (2, 2)]</pre><h2><tt>dim</tt><a id="3"></a></h2><p>Parameter space dimensions</p><p><b>Syntax</b></p><pre class="language-matlab">dim = D.dim()
+</pre><p><b>Description</b></p><p><tt>dim = D.dim()</tt> returns the dimensions of the parameter space of the distribution <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><p>The parameter space dimensions of a multi-variate normal distribution defined over a 2-dimensional data space is 6: 2 for the mean vector and 4 for the 2-by-2 covariance matrix.</p><pre class="language-matlab">D = mvnfactory(2);
+dim = D.dim()
+</pre><pre class="language-matlab">dim =
+     6
+</pre><h2><tt>datadim</tt><a id="4"></a></h2><p>Data space dimensions</p><p><b>Syntax</b></p><pre class="language-matlab">n = D.datadim()
+</pre><p><b>Description</b></p><p><tt>n = D.datadim()</tt> returns the dimensions of the data space where the distribution <tt>D</tt> is defined.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><p>The following example creates a multi-variate normal distribution defined over a 2-dimensional data space and calls <tt>datadim</tt> to get its data-space dimensions.</p><pre class="language-matlab">D = mvnfactory(2);
+n = D.datadim()
+</pre><pre class="language-matlab">n =
+     2
+</pre><h2><tt>ll</tt><a id="5"></a></h2><p>Log-likelihood</p><p><b>Syntax</b></p><pre class="language-matlab">ll = D.ll(theta, data)
+[ll, store] = D.ll(theta, data, store)
+</pre><p><b>Description</b></p><p><tt>ll = D.ll(theta, data)</tt> returns the total log-likelihood of the distribution <tt>D</tt> calculated over <tt>data</tt>, given the distribution parameters <tt>theta</tt>.</p><p><tt>[ll, store] = D.ll(theta, data, store)</tt> can be used for caching purposes as described <a href="../caching.html">here</a>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find the log-likelihood</span>
+ll = D.ll(theta, data)
+</pre><h2><tt>llvec</tt><a id="6"></a></h2><p>Log-likelihood for each data point</p><p><b>Syntax</b></p><pre class="language-matlab">llvec = D.llvec(theta, data)
+[llvec, store] = D.llvec(theta, data, store)
+</pre><p><b>Description</b></p><p><tt>llvec = D.llvec(theta, data)</tt> returns the log-likelihood for each point in <tt>data</tt> as a <tt>1-by-N</tt> vector where <tt>N</tt> is the number of data points. <tt>theta</tt> is the distribution parameters.</p><p><tt>[llvec, store] = D.llvec(theta, data, store)</tt> can be used for caching purposes as described <a href="../caching.html">here</a>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find the log-likelihood vector</span>
+llvec = D.llvec(theta, data)
+</pre><h2><tt>llgrad</tt><a id="7"></a></h2><p>Gradient of the log-likelihood, with respect to parameters</p><p><b>Syntax</b></p><pre class="language-matlab">dll = D.llgrad(theta, data)
+[dll, store] = D.llgrad(theta, data, store)
+</pre><p><b>Description</b></p><p><tt>dll = D.llgrad(theta, data)</tt> returns the (Euclidean) gradient of the log-likelihood (of the distribution <tt>D</tt> calculated over <tt>data</tt>, given the distribution parameters <tt>theta</tt>), with respect to parameters, in the parameter structure <tt>dll</tt>.</p><p><tt>[dll, store] = D.llgrad(theta, data, store)</tt> can be used for caching purposes as described <a href="../caching.html">here</a>.</p><p>For information about the parameter input <tt>theta</tt> and output <tt>dll</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% This is how you should call the functions if you</span>
+<span class="comment">% need the log-likelihood along with its gradient, in</span>
+<span class="comment">% order to share the common intermediate variables:</span>
+[ll, store] = D.ll(theta, data);
+dll = D.llgrad(theta, data, store);
+</pre><h2><tt>llgraddata</tt><a id="8"></a></h2><p>Gradient of the log-likelihood, with respect to data</p><p><b>Syntax</b></p><pre class="language-matlab">dld = D.llgraddata(theta, data)
+[dld, store] = D.llgraddata(theta, data, store)
+</pre><p><b>Description</b></p><p><tt>dld = D.llgraddata(theta, data)</tt> returns the (Euclidean) gradient of the log-likelihood (of the distribution <tt>D</tt> calculated over <tt>data</tt>, given the distribution parameters <tt>theta</tt>), with respect to each data point, in the <tt>n-by-N</tt> vector <tt>dld</tt>, where <tt>n</tt> is the data dimensions and <tt>N</tt> is the number of data points.</p><p><tt>[dld, store] = D.llgraddata(theta, data, store)</tt> can be used for caching purposes as described <a href="../caching.html">here</a>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% This is how you should call the functions if you</span>
+<span class="comment">% need the log-likelihood along with its gradient, in</span>
+<span class="comment">% order to share the common intermediate variables:</span>
+[ll, store] = D.ll(theta, data);
+dld = D.llgraddata(theta, data, store);
+</pre><h2><tt>cdf</tt><a id="9"></a></h2><p>Cumulative distribution function</p><p><b>Syntax</b></p><pre class="language-matlab">y = D.cdf(theta, data)
+</pre><p><b>Description</b></p><p><tt>y = D.cdf(theta, data)</tt> returns the cumulative distribution function (CDF) of the distribution <tt>D</tt> evaluated at points in <tt>data</tt>, given the distribution parameters <tt>theta</tt>. <tt>y</tt> is a <tt>1-by-N</tt> vector where <tt>N</tt> is the number of data points.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find the CDF on data</span>
+y = D.cdf(theta, data)
+</pre><h2><tt>pdf</tt><a id="10"></a></h2><p>Probability density function</p><p><b>Syntax</b></p><pre class="language-matlab">y = D.pdf(theta, data)
+</pre><p><b>Description</b></p><p><tt>y = D.pdf(theta, data)</tt> returns the probability density function (PDF) of the distribution <tt>D</tt> evaluated at points in <tt>data</tt>, given the distribution parameters <tt>theta</tt>. <tt>y</tt> is a <tt>1-by-N</tt> vector where <tt>N</tt> is the number of data points.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find the PDF on data</span>
+y = D.pdf(theta, data)
+</pre><h2><tt>sample</tt><a id="11"></a></h2><p>Generate random samples</p><p><b>Syntax</b></p><pre class="language-matlab">data = D.sample(theta)
+data = D.sample(theta, num)
+</pre><p><b>Description</b></p><p><tt>data = D.sample(theta)</tt> generates a random sample drawn from the distribution <tt>D</tt>, given the distribution parameters <tt>theta</tt>. <tt>data</tt> is an <tt>n-by-1</tt> vector where <tt>n</tt> is the dimensions of the data space.</p><p><tt>data = D.sample(theta, num)</tt> generates <tt>num</tt> random samples. <tt>data</tt> is an <tt>n-by-num</tt> matrix.</p><p><b>Example</b></p><p>Generate 1000 random samples from an N(0,1) distribution:</p><pre class="language-matlab">D = mvnfactory(1);
+theta = struct(<span class="string">'mu'</span>, 0, <span class="string">'sigma'</span>, 1);
+data = D.sample(theta, 1000)
+</pre><h2><tt>randparam</tt><a id="12"></a></h2><p>Generate random parameters for the distribution</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.randparam()
+</pre><p><b>Description</b></p><p><tt>theta = D.randparam()</tt> generates a valid random parameter structure for the distribution <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p>For more information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><p>Generate a random parameter structure for a Gaussian distribution:</p><pre class="language-matlab">D = mvnfactory(1);
+theta = D.randparam()
+</pre><h2><tt>init</tt><a id="13"></a></h2><p>Generate initial parameters appropriate for the given data</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.init(data)
+theta = D.init(data, <span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>theta = D.init(data)</tt> generates suitable parameters to be used as the initial point for later estimation on <tt>data</tt>.</p><p><tt>theta = D.init(data, ...)</tt> Some distributions may accept additional arguments for the <tt>init</tt> function. This should be mentioned in their specific documentation.</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a mixture of two Gaussian distributions</span>
+D = mixturefactory(mvnfactory(1), 2);
+<span class="comment">% generate 1000 random data points</span>
+data = [randn(1,500), randn(1,500)+5];
+<span class="comment">% find a suitable initialization point</span>
+options.theta0 = D.init(data);
+<span class="comment">% perform estimation</span>
+theta = D.estimate(data, options)
+</pre><h2><tt>estimate</tt><a id="14"></a></h2><p>Estimate distribution parameters to fit data</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.estimate(data)
+theta = D.estimate(data, options)
+[theta, D] = D.estimate(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info] = D.estimate(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info, options] = D.estimate(<span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>theta = D.estimate(data)</tt> returns estimated parameters for the distribution <tt>D</tt>, using <tt>data</tt>.</p><p><tt>theta = D.estimate(data, options)</tt> utilizes applicable options from the <tt>options</tt> structure in the estimation procedure.</p><p><tt>[theta, D] = D.estimate(...)</tt> also returns <tt>D</tt>, the distribution structure for which <tt>theta</tt> is applicable. (This is the same as the distribution structure <tt>D</tt> from which you called <tt>estimate</tt>, and so it should not normally be used. The purpose of including it in the output is to maintain compatibility with other estimation functions).</p><p><tt>[theta, D, info] = D.estimate(...)</tt> also returns <tt>info</tt>, a structure array containing information about successive iterations performed by iterative estimation functions.</p><p><tt>[theta, D, info, options] = D.estimate(...)</tt> also returns the effective <tt>options</tt> used, so you can see what default values the function used on top of the options you possibly specified.</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>. You may also want to read about <a href="../estimation_options.html"><tt>options</tt></a> or <a href="../estimation_statistics_structure.html"><tt>info</tt></a> arguments.</p><p><b>Available Options</b></p><p>This function supports all the options described in <a href="../estimation_options.html">estimation options</a>.</p><p><b>Returned <tt>info</tt> fields</b></p><p>The fields present in the returned <tt>info</tt> structure array, depend on the solver used (<tt>options.solver</tt>). When a Manopt solver is specified, the <tt>info</tt> returned by the Manopt solver is returned directly. For the 'default' solver see the documentation of the 'estimatedefault' function for the specific distribution. You can read more at our documentation on <a href="../estimation_statistics_structure.html">estimation statistics structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a Gaussian distribution</span>
+D = mvnfactory(1);
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1,1000) .* 2 + 1;
+<span class="comment">% set some options</span>
+options.solver = <span class="string">'cg'</span>;
+options.verbosity = 2;
+<span class="comment">% fit distribution parameters to data</span>
+theta = D.estimate(data, options)
+</pre><h2><tt>penalizerparam</tt><a id="15"></a></h2><p>Generate parameter structure for the default penalization function</p><p><b>Syntax</b></p><pre class="language-matlab">penalizer_theta = D.penalizerparam(data)
+</pre><p><b>Description</b></p><p><tt>penalizer_theta = D.penalizerparam(data)</tt> returns the parameter structure for the default penalization function related to the distribution <tt>D</tt>, appropriate for <tt>data</tt>.</p><p>For more information on special penalization functions and their parameters for each distribution, refer to the documentation of that distribution.</p><p>The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><h2><tt>penalizercost</tt><a id="16"></a></h2><p>Cost penalty of the default penalization function</p><p><b>Syntax</b></p><pre class="language-matlab">costP = D.penalizercost(theta, penalizer_theta)
+[costP, store] = D.penalizercost(theta, penalizer_theta, store)
+</pre><p><b>Description</b></p><p><tt>costP = D.penalizercost(theta, penalizer_theta)</tt> returns the cost penalty calculated by the default penalization function related to the distribution <tt>D</tt>. <tt>theta</tt> is the distribution parameter structure and <tt>penalizer_theta</tt> represents the parameter structure for the penalization function.</p><p><tt>[costP, store] = D.penalizercost(theta, penalizer_theta, store)</tt> can be used for caching purposes as described <a href="../caching.html">here</a>.</p><p>The output of this function is used as a regularizer for the cost function during parameter estimation when penalization is turned on.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. <tt>penalizer_theta</tt> can be obtained by calling <a href="#15"><tt>penalizerparam</tt></a>.</p><h2><tt>penalizergrad</tt><a id="17"></a></h2><p>Gradient penalty of the default penalization function</p><p><b>Syntax</b></p><pre class="language-matlab">gradP = D.penalizergrad(theta, penalizer_theta)
+[gradP, store] = D.penalizergrad(theta, penalizer_theta, store)
+</pre><p><b>Description</b></p><p><tt>gradP = D.penalizergrad(theta, penalizer_theta)</tt> returns the (Euclidean) gradient penalty calculated by the default penalization function related to the distribution <tt>D</tt>. <tt>theta</tt> is the distribution parameter structure and <tt>penalizer_theta</tt> represents the parameter structure for the penalization function.</p><p><tt>[gradP, store] = D.penalizergrad(theta, penalizer_theta, store)</tt> can be used for caching purposes as described <a href="../caching.html">here</a>.</p><p>The output of this function is used as a regularizer for the cost-gradient function during parameter estimation when penalization is turned on.</p><p>For information about the parameter input <tt>theta</tt> and output <tt>gradP</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. <tt>penalizer_theta</tt> can be obtained by calling <a href="#15"><tt>penalizerparam</tt></a>.</p><h2><tt>sumparam</tt><a id="18"></a></h2><p>Sum of two parameter structures</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.sumparam(theta1, theta2)
+</pre><p><b>Description</b></p><p><tt>theta = D.sumparam(theta1, theta2)</tt> calculates the element-by-element sum of two parameter structures <tt>theta1</tt> and <tt>theta2</tt> of the distribution <tt>D</tt>. <tt>theta1</tt> and <tt>theta2</tt> can also be Euclidean gradients with respect to parameter distributions.</p><p>For information about the parameter structures <tt>theta</tt>, <tt>theta1</tt> and <tt>theta2</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><p>Following example shows how to add two Euclidean gradients of the log-likelihood with respect to parameters:</p><pre class="language-matlab"><span class="comment">% create a distribution and random parameter values</span>
+D = mvnfactory(1);
+theta1 = D.randparam();
+theta2 = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find Euclidean gradients of ll and penalizer</span>
+dll1 = D.llgrad(theta1, data);
+dll2 = D.llgrad(theta2, data);
+<span class="comment">% sum the gradients</span>
+dllsum = D.sumparam(dll1, dll2)
+</pre><h2><tt>scaleparam</tt><a id="19"></a></h2><p>Multiply parameter structure by a scalar</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.scaleparam(scalar, theta)
+</pre><p><b>Description</b></p><p><tt>theta = D.scaleparam(scalar, theta)</tt> calculates the product of the scalar <tt>scalar</tt> by the parameter structure <tt>theta</tt> of the distribution <tt>D</tt>.</p><p>For information about the parameter structure <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><p>Following example shows how to negate the Euclidean gradient of the log-likelihood with respect to parameters:</p><pre class="language-matlab"><span class="comment">% create a distribution and random parameter values</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find Euclidean gradient of ll</span>
+dll = D.llgrad(theta, data);
+<span class="comment">% negate the gradient</span>
+grad = D.scaleparam(-1, dll)
+</pre><h2><tt>sumgrad</tt><a id="20"></a></h2><p>Sum of two Riemannian gradients</p><p><b>Syntax</b></p><pre class="language-matlab">rgrad = D.sumgrad(rgrad1, rgrad2, theta)
+</pre><p><b>Description</b></p><p><tt>rgrad = D.sumgrad(rgrad1, rgrad2, theta)</tt> calculates the sum of two Riemannian gradients <tt>rgrad1</tt> and <tt>rgrad2</tt> on the tangent space at the point <tt>theta</tt> on the parameter manifold of the distribution <tt>D</tt>. <tt>rgrad1</tt> and <tt>rgrad2</tt> should be obtained by <tt>D.M.egrad2rgrad</tt> from the corresponding Euclidean gradients.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><p>Following example shows how to add the Riemannian gradients of the penalizer and log-likelihood at some parameter value:</p><pre class="language-matlab"><span class="comment">% create a distribution and random parameter values</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find Euclidean gradients of ll and penalizer</span>
+dll = D.llgrad(theta, data);
+penalizer_theta = D.penalizerparam(data);
+gradP = D.penalizergrad(theta, penalizer_theta);
+<span class="comment">% convert the gradients to Riemannian</span>
+rdll = D.M.egrad2rgrad(theta, dll);
+rgradP = D.M.egrad2rgrad(theta, gradP);
+<span class="comment">% sum the gradients</span>
+grad = D.sumgrad(rdll, rgradP, theta)
+</pre><h2><tt>scalegrad</tt><a id="21"></a></h2><p>Multiply Riemannian gradient by a scalar</p><p><b>Syntax</b></p><pre class="language-matlab">rgrad = D.scalegrad(scalar, rgrad, theta)
+</pre><p><b>Description</b></p><p><tt>rgrad = D.scalegrad(scalar, rgrad, theta)</tt> calculates the product of the scalar <tt>scalar</tt> by the Riemannian gradient <tt>rgrad</tt>, on the tangent space at the point <tt>theta</tt> on the parameter manifold of the distribution <tt>D</tt>. <tt>rgrad</tt> should be obtained by <tt>D.M.egrad2rgrad</tt> from the corresponding Euclidean gradient.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><p>Following example shows how to negate the Riemannian gradient of the log-likelihood at some parameter value:</p><pre class="language-matlab"><span class="comment">% create a distribution and random parameter values</span>
+D = mvnfactory(1);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(1, 1000);
+<span class="comment">% find Euclidean gradient of ll</span>
+dll = D.llgrad(theta, data);
+<span class="comment">% convert the gradient to Riemannian</span>
+rdll = D.M.egrad2rgrad(theta, dll);
+<span class="comment">% negate the gradient</span>
+grad = D.scalegrad(-1, rdll, theta)
+</pre><h2><tt>entropy</tt><a id="22"></a></h2><p>Calculate entropy</p><p><b>Syntax</b></p><pre class="language-matlab">h = D.entropy(theta)
+</pre><p><b>Description</b></p><p><tt>h = D.entropy(theta)</tt> calculates the entropy of the distribution <tt>D</tt> given parameters <tt>theta</tt>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameter values</span>
+D = mvnfactory(2);
+theta = D.randparam();
+<span class="comment">% find the entropy</span>
+h = D.entropy(theta)
+</pre><h2><tt>kl</tt><a id="23"></a></h2><p>Calculate Kullback&#8211;Leibler divergence</p><p><b>Syntax</b></p><pre class="language-matlab">kl = D.kl(theta1, theta2)
+</pre><p><b>Description</b></p><p><tt>kl = D.kl(theta1, theta2)</tt> calculates the KL divergence between the distribution <tt>D</tt> given parameters <tt>theta1</tt> and  the same distribution given parameters <tt>theta2</tt>.</p><p>For information about the parameter inputs <tt>theta1</tt> and <tt>theta2</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and two random parameter structures</span>
+D = mvnfactory(2);
+theta1 = D.randparam();
+theta2 = D.randparam();
+<span class="comment">% find the KL divergence</span>
+kl = D.kl(theta1, theta2)
+</pre><h2><tt>AICc</tt><a id="24"></a></h2><p>Calculate corrected Akaike information criterion without the likelihood term</p><p><b>Syntax</b></p><pre class="language-matlab">aicc = D.AICc(data)
+</pre><p><b>Description</b></p><p><tt>aicc = D.AICc(data)</tt> calculates the corrected Akaike information criterion (AICc) of the distribution <tt>D</tt> for the given <tt>data</tt>, without the likelihood term. This should be added to the <a href="#5">log-likelihood</a> to obtain the full AICc (multiplied by -1/2).</p><p>The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(2);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(2, 1000);
+<span class="comment">% find the AICc</span>
+aicc = D.ll(theta, data) + D.AICc(data)
+</pre><h2><tt>BIC</tt><a id="25"></a></h2><p>Calculate Bayesian information criterion without the likelihood term</p><p><b>Syntax</b></p><pre class="language-matlab">bic = D.BIC(data)
+</pre><p><b>Description</b></p><p><tt>bic = D.BIC(data)</tt> calculates the Bayesian information criterion (BIC) of the distribution <tt>D</tt> for the given <tt>data</tt>, without the likelihood term. This should be added to the <a href="#5">log-likelihood</a> to obtain the full BIC (multiplied by -1/2).</p><p>The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+D = mvnfactory(2);
+theta = D.randparam();
+<span class="comment">% generate 1000 random data points</span>
+data = randn(2, 1000);
+<span class="comment">% find the BIC</span>
+bic = D.ll(theta, data) + D.BIC(data)
+</pre><h2><tt>display</tt><a id="26"></a></h2><p>Display parameter values</p><p><b>Syntax</b></p><pre class="language-matlab">str = D.display(theta)
+D.display(theta)
+</pre><p><b>Description</b></p><p><tt>str = display(theta)</tt> returns a string containing information about the parameter values in <tt>theta</tt>.</p><p><tt>D.display(theta)</tt> displays the distribution name along with information about the parameter values in <tt>theta</tt>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and parameter structure</span>
+D = mvnfactory(1);
+theta = struct(<span class="string">'mu'</span>, [0;0], <span class="string">'sigma'</span>, [2 1;3 4]);
+<span class="comment">% display parameter values</span>
+D.display(theta)
+</pre><pre>ans =
+     mvn distribution parameters:
+     mean (2-by-1): [0;0]
+     covariance (2-by-2): [2 1;3 4]</pre><h2><tt>selfsplit</tt><a id="27"></a></h2><p>Calculate the initial parameters for two splitted distributions to be substituted for current distribution (used in split-and-merge mixture estimation)</p><p><b>Syntax</b></p><pre class="language-matlab">[value1, value2] = D.selfsplit(theta, param_name)
+[value1, value2] = D.selfsplit(theta, param_name, method)
+[value1, value2] = D.selfsplit(theta, param_name, method, data)
+[value1, value2, store] = D.selfsplit(theta, param_name, method, data, store)
+[value1, value2, store, mixture_store] = D.selfsplit(theta, param_name, method, data, store, mixture_D, mixture_theta, idx, mixture_store)
+</pre><h2><tt>selfmerge</tt><a id="28"></a></h2><p>Calculate the initial parameters for a merged distribution to be substituted for two distributions (used in split-and-merge mixture estimation)</p><p><b>Syntax</b></p><pre class="language-matlab">value = D.selfmerge(theta1, theta2, param_name, w1, w2)
+value = D.selfmerge(theta1, theta2, param_name, w1, w2, method)
+value = D.selfmerge(theta1, theta2, param_name, w1, w2, method, data)
+[value, store] = D.selfmerge(theta1, theta2, param_name, w1, w2, method, data, store)
+[value, store, mixture_store] = mvn_selfmerge(theta1, theta2, param_name, w1, w2, method, data, store, mixture_D, mixture_theta, idx1, idx2, mixture_store)
+</pre></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>name</tt></a></li><li><a class="list-group-item" href="#2"><tt>M</tt></a></li><li><a class="list-group-item" href="#3"><tt>dim</tt></a></li><li><a class="list-group-item" href="#4"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#5"><tt>ll</tt></a></li><li><a class="list-group-item" href="#6"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#7"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#8"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#9"><tt>cdf</tt></a></li><li><a class="list-group-item" href="#10"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#11"><tt>sample</tt></a></li><li><a class="list-group-item" href="#12"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#13"><tt>init</tt></a></li><li><a class="list-group-item" href="#14"><tt>estimate</tt></a></li><li><a class="list-group-item" href="#15"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#16"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#17"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#18"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#19"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#20"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#21"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#22"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#23"><tt>kl</tt></a></li><li><a class="list-group-item" href="#24"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#25"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#26"><tt>display</tt></a></li><li><a class="list-group-item" href="#27"><tt>selfsplit</tt></a></li><li><a class="list-group-item" href="#28"><tt>selfmerge</tt></a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>

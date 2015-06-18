@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/api/cmvn2factory.html">
+
+    <title>cmvn2factory | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">cmvn2factory
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//api/index.html">api</a></li>
+			
+		
+	
+		
+			
+				<li class="active">cmvn2factory</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><h2><tt>cmvn2factory</tt><a id="1"></a></h2><p>Construct a reparameterized conditional multi-variate normal distribution structure</p><p><b>Syntax</b></p><pre class="language-matlab">D = cmvn2factory(datadim, conddim)
+</pre><p><b>Description</b></p><p><tt>D = cmvnfactory(datadim, conddim)</tt> returns a structure representing a conditional normal distribution with a special reparameterization. <tt>datadim</tt> is the data dimensions and <tt>conddim</tt> is the condition dimensions.</p><p><b>See also</b> <a href="cmvnfactory.html">cmvnfactory</a></p><h2><tt>name</tt><a id="2"></a></h2><p>See <a href="doc_distribution_common.html#1">distribution structure common members</a>.</p><h2><tt>M</tt><a id="4"></a></h2><p>See <a href="doc_distribution_common.html#2">distribution structure common members</a>.</p><h2><tt>dim</tt><a id="5"></a></h2><p>See <a href="doc_distribution_common.html#3">distribution structure common members</a>.</p><h2><tt>datadim</tt><a id="6"></a></h2><p>See <a href="doc_distribution_common.html#4">distribution structure common members</a>.</p><h2><tt>conddim</tt><a id="7"></a></h2><h2><tt>main2new</tt><a id="9"></a></h2><p>Convert usual MVN parameters to reparameterized parameters</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.main2new(theta)
+</pre><h2><tt>new2main</tt><a id="10"></a></h2><p>Convert reparameterized parameters to usual MVN parameters</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.new2main(theta)
+</pre><h2><tt>ll</tt><a id="11"></a></h2><p>See <a href="doc_distribution_common.html#5">distribution structure common members</a>.</p><h2><tt>llvec</tt><a id="12"></a></h2><p>See <a href="doc_distribution_common.html#6">distribution structure common members</a>.</p><h2><tt>llgrad</tt><a id="13"></a></h2><p>See <a href="doc_distribution_common.html#7">distribution structure common members</a>.</p><h2><tt>llgraddata</tt><a id="14"></a></h2><p>See <a href="doc_distribution_common.html#8">distribution structure common members</a>.</p><h2><tt>cdf</tt><a id="15"></a></h2><p>See <a href="doc_distribution_common.html#9">distribution structure common members</a>.</p><h2><tt>pdf</tt><a id="16"></a></h2><p>See <a href="doc_distribution_common.html#10">distribution structure common members</a>.</p><h2><tt>sample</tt><a id="17"></a></h2><p>See <a href="doc_distribution_common.html#11">distribution structure common members</a>.</p><h2><tt>randparam</tt><a id="18"></a></h2><p>See <a href="doc_distribution_common.html#12">distribution structure common members</a>.</p><h2><tt>init</tt><a id="19"></a></h2><p>See <a href="doc_distribution_common.html#13">distribution structure common members</a>.</p><h2><tt>estimatedefault</tt><a id="20"></a></h2><p>Default estimation function for conditional multi-variate normal distribution. This function implements the maximum likelihood method.</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.estimatedefault(data)
+theta = D.estimatedefault(data, options)
+[theta, D] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info, options] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>theta = D.estimatedefault(data)</tt> returns estimated parameters for the distribution <tt>D</tt>, using <tt>data</tt>.</p><p><tt>theta = D.estimatedefault(data, options)</tt> utilizes applicable options from the <tt>options</tt> structure in the estimation procedure.</p><p><tt>[theta, D] = D.estimatedefault(...)</tt> also returns <tt>D</tt>, the distribution structure for which <tt>theta</tt> is applicable. (This is the same as the distribution structure <tt>D</tt> from which you called <tt>estimate</tt>, and so it should not normally be used. The purpose of including it in the output is to maintain compatibility with other estimation functions).</p><p><tt>[theta, D, info] = D.estimatedefault(...)</tt> also returns <tt>info</tt>, a structure array containing information about successive iterations performed by iterative estimation functions.</p><p><tt>[theta, D, info, options] = D.estimatedefault(...)</tt> also returns the effective <tt>options</tt> used, so you can see what default values the function used on top of the options you possibly specified.</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>. You may also want to read about <a href="../estimation_options.html"><tt>options</tt></a> or <a href="../estimation_statistics_structure.html"><tt>info</tt></a> arguments.</p><p><b>Available Options</b></p><p>Currently no options are available for this function.</p><p><b>Returned <tt>info</tt> fields</b></p><p>The method used is not iterative and so the returned <tt>info</tt> is empty.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a cmvn2 distribution</span>
+D = cmvn2factory(1, 1);
+<span class="comment">% generate 1000 random data points</span>
+data = randn(2,1000) .* 2 + 1;
+<span class="comment">% estimate distribution parameters to fit the data</span>
+theta = D.estimatedefault(data)
+</pre><h2><tt>penalizerparam</tt><a id="21"></a></h2><p>See <a href="doc_distribution_common.html#15">distribution structure common members</a>.</p><p><b>Penalizer Info</b></p><p>The default penalizer for this distribution is the Inverse-Wishart distribution for covariance and Normal distribution for mean</p><p>Inverse-Wishart prior on covariance has the following form:</p><p><img src="cmvn2factory_eq44008.png" alt="$$ f(\Sigma) =&#xA;|\Sigma|^{-(nu+d+1)/2} \exp(-0.5 trace(\Sigma^{-1} invLambda)) $$"></p><p>where</p><div><ul><li><b><tt>nu</tt></b> (scalar) : Degrees of freedom.</li><li><b><tt>invLambda</tt></b> (<tt>datadim-by-datadim</tt> matrix) : The inverse scale matrix.</li></ul></div><p>Normal prior on the mean has the following form:</p><p><img src="cmvn2factory_eq76359.png" alt="$$ f(\mu|\Sigma) =&#xA;|\Sigma|^{-1/2} exp(-kappa/2 (\mu-\mu_p)^T \Sigma^{-1} (\mu-\mu_p)) $$"></p><p>where</p><div><ul><li><b><tt>mu_p</tt></b> (<tt>datadim-by-1</tt> vector) : The mean vector.</li><li><b><tt>kappa</tt></b> (scalar) : the shrinkage parameter</li></ul></div><h2><tt>penalizercost</tt><a id="22"></a></h2><p>See <a href="doc_distribution_common.html#16">distribution structure common members</a>.</p><h2><tt>penalizergrad</tt><a id="23"></a></h2><p>See <a href="doc_distribution_common.html#17">distribution structure common members</a>.</p><h2><tt>sumparam</tt><a id="24"></a></h2><p>See <a href="doc_distribution_common.html#18">distribution structure common members</a>.</p><h2><tt>scaleparam</tt><a id="25"></a></h2><p>See <a href="doc_distribution_common.html#19">distribution structure common members</a>.</p><h2><tt>sumgrad</tt><a id="26"></a></h2><p>See <a href="doc_distribution_common.html#20">distribution structure common members</a>.</p><h2><tt>scalegrad</tt><a id="27"></a></h2><p>See <a href="doc_distribution_common.html#21">distribution structure common members</a>.</p><h2><tt>entropy</tt><a id="28"></a></h2><p>See <a href="doc_distribution_common.html#22">distribution structure common members</a>.</p><h2><tt>kl</tt><a id="29"></a></h2><p>See <a href="doc_distribution_common.html#23">distribution structure common members</a>.</p><h2><tt>AICc</tt><a id="30"></a></h2><p>See <a href="doc_distribution_common.html#24">distribution structure common members</a>.</p><h2><tt>BIC</tt><a id="31"></a></h2><p>See <a href="doc_distribution_common.html#25">distribution structure common members</a>.</p><h2><tt>display</tt><a id="32"></a></h2><p>See <a href="doc_distribution_common.html#26">distribution structure common members</a>.</p></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>cmvn2factory</tt></a></li><li><a class="list-group-item" href="#2"><tt>name</tt></a></li><li><a class="list-group-item" href="#4"><tt>M</tt></a></li><li><a class="list-group-item" href="#5"><tt>dim</tt></a></li><li><a class="list-group-item" href="#6"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#7"><tt>conddim</tt></a></li><li><a class="list-group-item" href="#9"><tt>main2new</tt></a></li><li><a class="list-group-item" href="#10"><tt>new2main</tt></a></li><li><a class="list-group-item" href="#11"><tt>ll</tt></a></li><li><a class="list-group-item" href="#12"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#13"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#14"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#15"><tt>cdf</tt></a></li><li><a class="list-group-item" href="#16"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#17"><tt>sample</tt></a></li><li><a class="list-group-item" href="#18"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#19"><tt>init</tt></a></li><li><a class="list-group-item" href="#20"><tt>estimatedefault</tt></a></li><li><a class="list-group-item" href="#21"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#22"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#23"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#24"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#25"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#26"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#27"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#28"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#29"><tt>kl</tt></a></li><li><a class="list-group-item" href="#30"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#31"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#32"><tt>display</tt></a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>

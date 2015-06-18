@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/estimation_options.html">
+
+    <title>Estimation Options | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Estimation Options
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li class="active">estimation options</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><!--introduction--><p>All estimation functions in MixEst accept an optional <tt>options</tt> structure to let the user control the behavior of the estimation algorithm. Each field of the structure corresponds to an option. The default value is used for any missing option.</p><p>The estimation functions read only the fields that they understand from the structure and leave the other fields intact, possibly passing them to other functions that are called inside (such as Manopt solvers). The list of options available for each estimation function is mentioned in its documentation.</p><!--/introduction--><h2>List of commonly-used options<a id="1"></a></h2><p>Here is a list of common options used in estimation functions. For information about the available options for a specific function, refer to the documentation of that function. Note that the option names are NOT case sensitive and are all converted to lower case before processing.</p><div class="table-responsive"><table class="table table-striped table-bordered"><thead><tr><th>Name</th><th>Type</th><th>Default Value</th><th>Description</th></tr></thead><tbody><tr><td><tt>solver</tt></td><td><tt>string / function handle</tt></td><td><tt>'default'</tt></td><td><tt>Solver handle, solver name or 'default' to call estimatedefault. See the <a href="#2">next section</a> for more details.</tt></td></tr><tr><td><tt>theta0</tt></td><td><tt>parameter structure</tt></td><td><tt>[]</tt></td><td><tt>Initial theta. If empty, the init function of the distribution is called to obtain an initial theta</tt></td></tr><tr><td><tt>penalize</tt></td><td><tt>logical</tt></td><td><tt>false</tt></td><td><tt>Add penalization to the cost function</tt></td></tr><tr><td><tt>penalizerTheta</tt></td><td><tt>parameter structure</tt></td><td><tt>[]</tt></td><td><tt>Penalizer parameters. If empty, uses the output of the penalizerparam function of the distribution on estimation data.</tt></td></tr><tr><td><tt>miniBatch</tt></td><td><tt>logical / structure</tt></td><td><tt>false</tt></td><td><tt>Flag to enable mini-batching, or a minibatch_options structure to customize mini-batching. See <a href="#3">below</a> for more details.</tt></td></tr><tr><td><tt>dataPatchSize</tt></td><td><tt>integer</tt></td><td><tt>Inf</tt></td><td><tt>Data is loaded patch-by-patch with patches of this size, when calculating the cost function. A value of Inf disables this feature.</tt></td></tr><tr><td><tt>checkGradient</tt></td><td><tt>logical</tt></td><td><tt>false</tt></td><td><tt>Check gradient of the optimization problem instead of performing the full estimation</tt></td></tr><tr><td><tt>verbosity</tt></td><td><tt>integer</tt></td><td><tt>1</tt></td><td><tt>Controls how much information is displayed during estimation (0: none; 1: at init and exit; 2: at every iteration)</tt></td></tr><tr><td><tt>prevInfo</tt></td><td><tt>structure array</tt></td><td><tt>[]</tt></td><td><tt>The info structure array of a previous estimation function to continue from.</tt></td></tr><tr><td><tt>plotCost</tt></td><td><tt>logical / structure</tt></td><td><tt>false</tt></td><td><tt>Flag to enable plotting the cost value during estimation, or a plot_options structure to customize the plot. See <a href="#4">below</a> for more details.</tt></td></tr><tr><td><tt>plotGradNorm</tt></td><td><tt>logical / structure</tt></td><td><tt>false</tt></td><td><tt>Flag to enable plotting the norm of the gradient during estimation, or a plot_options structure to customize the plot. See <a href="#4">below</a> for more details.</tt></td></tr><tr><td><tt>visualization</tt></td><td><tt>logical / structure</tt></td><td><tt>false</tt></td><td><tt>Flag to enable 2-D or 3-D visualization during estimation, or a vis_options structure to customize visualization. See <a href="#5">below</a> for more details.</tt></td></tr><tr><td><tt>crossVal</tt></td><td><tt>logical / structure</tt></td><td><tt>false</tt></td><td><tt>Flag to enable cross-validation, or a crossval_options structure to customize cross-validation. See <a href="#6">below</a> for more details.</tt></td></tr><tr><td><tt>minIter</tt></td><td><tt>integer</tt></td><td><tt>0</tt></td><td><tt>Minimum number of iterations</tt></td></tr><tr><td><tt>maxIter</tt></td><td><tt>integer</tt></td><td><tt>Inf</tt></td><td><tt>Maximum number of iterations</tt></td></tr><tr><td><tt>maxTime</tt></td><td><tt>double</tt></td><td><tt>Inf</tt></td><td><tt>Maximum running time, in seconds</tt></td></tr><tr><td><tt>maxCostEvals</tt></td><td><tt>integer</tt></td><td><tt>Inf</tt></td><td><tt>Maximum number of evaluations of the cost function</tt></td></tr><tr><td><tt>tolCost</tt></td><td><tt>double</tt></td><td><tt>-Inf</tt></td><td><tt>Stop as soon as the cost drops below this tolerance</tt></td></tr><tr><td><tt>tolGradNorm</tt></td><td><tt>double</tt></td><td><tt>1e-06</tt></td><td><tt>stop as soon as the norm of the gradient drops below this tolerance</tt></td></tr><tr><td><tt>minStepSize</tt></td><td><tt>double</tt></td><td><tt>1e-10</tt></td><td><tt>Stop as soon as the norm of the step size drops below this tolerance</tt></td></tr><tr><td><tt>tolCostDiff</tt></td><td><tt>double</tt></td><td><tt>1e-06</tt></td><td><tt>Stop as soon as the decrease in cost in an iteration is less than this tolerance</tt></td></tr><tr><td><tt>statsfun</tt></td><td><tt>function handle</tt></td><td><tt>-</tt></td><td><tt>Used to log custom information during estimation. See <a href="#7">below</a> for more details.</tt></td></tr><tr><td><tt>stopfun</tt></td><td><tt>function handle</tt></td><td><tt>-</tt></td><td><tt>Used to define custom termination criteria for the estimation procedure. See <a href="#8">below</a> for more details.</tt></td></tr><tr><td><tt>costgrad</tt></td><td><tt>function handle</tt></td><td><tt>-</tt></td><td><tt>Used to define custom cost function for the estimation procedure. See <a href="#9">below</a> for more details.</tt></td></tr></tbody></table></div><h2>Solvers<a id="2"></a></h2><p>In the main estimation function, we use <a href="http://www.manopt.org">Manopt</a> solvers to solve the optimization problem involved in model parameter estimation. You can select the employed solver by setting <tt>options.solver</tt> to the handle of the solver function (e.g. <tt>options.solver = @trustregions;</tt>), or alternatively you can set <tt>options.solver</tt> to one of the string values from the following table.</p><div class="table-responsive"><table class="table table-striped table-bordered"><thead><tr><th>Value</th><th>Description</th></tr></thead><tbody><tr><td><tt>'default'</tt></td><td><tt>If the distribution structure exposes an estimatedefault function, calls it. Otherwise uses the LBFGS solver</tt></td></tr><tr><td><tt>'lbfgs'</tt></td><td><tt>LBFGS solver</tt></td></tr><tr><td><tt>'cg' or 'conjugategradient'</tt></td><td><tt>conjugate-gradient solver</tt></td></tr><tr><td><tt>'tr' or 'trustregions'</tt></td><td><tt>trust-regions solver</tt></td></tr><tr><td><tt>'sd', 'gd', 'steepestdescent' or 'gradientdescent'</tt></td><td><tt>steepest-descent (gradient-descent) solver</tt></td></tr></tbody></table></div><h2>Mini-batching options<a id="3"></a></h2><p>To enable mini-batching, you can set <tt>options.miniBatch</tt> to <tt>true</tt> to use the default mini-batching options. Alternatively you may set special mini-batching options as fields in <tt>options.miniBatch</tt> (as a structure) to customize mini-batching. For example the following code sets the number of data points in each mini-batch to 400 and the number of iterations per mini-batch to 20. The other mini-batcing options will be set to their default values.</p><pre class="language-matlab">options.minibatch.size = 400;
+options.minibatch.iter = 20;
+</pre><p>The following table lists the mini-batching options:</p><div class="table-responsive"><table class="table table-striped table-bordered"><thead><tr><th>Name</th><th>Type</th><th>Default Value</th><th>Description</th></tr></thead><tbody><tr><td><tt>size</tt></td><td><tt>integer</tt></td><td><tt>1000</tt></td><td><tt>Number of data points in each minibatch. A value of zero disables mini-batching</tt></td></tr><tr><td><tt>iter</tt></td><td><tt>integer</tt></td><td><tt>10</tt></td><td><tt>Number of iterations per mini-batch</tt></td></tr><tr><td><tt>discardHistory</tt></td><td><tt>logical</tt></td><td><tt>true</tt></td><td><tt>Discard optimization history and start again from the final theta before moving to the next mini-batch</tt></td></tr><tr><td><tt>overlap</tt></td><td><tt>integer</tt></td><td><tt>0</tt></td><td><tt>Number of data points shared between two consecutive mini-batches</tt></td></tr></tbody></table></div><h2>Plotting options<a id="4"></a></h2><p>MixEst gives you the option to plot the optimization cost and/or gradient norm during estimations. You can set <tt>options.plotCost</tt> or <tt>options.plotGradNorm</tt> to <tt>true</tt> to enable this feature. Alternatively you may set predefined field(s) in these options (as structures) to customize plotting behavior. The following example shows how to set options to show the cost and gradient norm plot in a single figure during estimation.</p><pre class="language-matlab">figure
+options.plotcost.axes = subplot(2,1,1);
+options.plotgradnorm.axes = subplot(2,1,2);
+</pre><p>The following table lists the plotting options:</p><div class="table-responsive"><table class="table table-striped table-bordered"><thead><tr><th>Name</th><th>Type</th><th>Default Value</th><th>Description</th></tr></thead><tbody><tr><td><tt>enabled</tt></td><td><tt>logical</tt></td><td><tt>true</tt></td><td><tt>Flag to enable the plot</tt></td></tr><tr><td><tt>axes</tt></td><td><tt>axes handle</tt></td><td><tt>0</tt></td><td><tt>Handle of the axes object for the plot. A value of zero means creating a new figure and axes.</tt></td></tr><tr><td><tt>avgiter</tt></td><td><tt>integer</tt></td><td><tt>1</tt></td><td><tt>Use averaged values over this number of iterations for plotting</tt></td></tr><tr><td><tt>iterCount</tt></td><td><tt>integer</tt></td><td><tt>100</tt></td><td><tt>Plot over this number of last iterations</tt></td></tr><tr><td><tt>xlabel</tt></td><td><tt>string</tt></td><td><tt>'iterations'</tt></td><td><tt>X-axis label</tt></td></tr><tr><td><tt>ylabel</tt></td><td><tt>string</tt></td><td><tt>''</tt></td><td><tt>Y-axis label</tt></td></tr><tr><td><tt>title</tt></td><td><tt>string</tt></td><td><tt>''</tt></td><td><tt>Plot title</tt></td></tr><tr><td><tt>legend</tt></td><td><tt>cell array of strings</tt></td><td><tt>'default'</tt></td><td><tt>Cell array of labels for the legend, or 'default' to use the default labels</tt></td></tr><tr><td><tt>log</tt></td><td><tt>logical</tt></td><td><tt>true</tt></td><td><tt>Flag to use a logarithmic Y-scale</tt></td></tr><tr><td><tt>grid</tt></td><td><tt>logical</tt></td><td><tt>true</tt></td><td><tt>Flag to show grid lines</tt></td></tr></tbody></table></div><h2>Visualization options<a id="5"></a></h2><p>We have implemented simple visualizations for some of the distributions that might be useful for you (They were really helpful for us during development). If you have 2-D or 3-D data, You can set <tt>options.visualization</tt> to <tt>true</tt> to give it a try. Alternatively you may set predefined field(s) in <tt>options.visualization</tt> (as a structure) to customize the visualization. This feature is experimental and is not fully documented yet but the following example illustrates how you can set some visualization options.</p><pre class="language-matlab"><span class="comment">% main visualization options</span>
+options.visualization.axes = gca;
+options.visualization.stopOnClose = true; <span class="comment">% stop estimation when the figure is closed</span>
+options.visualization.dataPlotType = <span class="string">'patch'</span>; <span class="comment">% or 'scatter'</span>
+<span class="comment">% visualization options for the mixture distribution</span>
+options.visualization.mixture.colorize = true;
+options.visualization.mixture.colorMap = hsv(3);
+options.visualization.mixture.showLabels = true;
+<span class="comment">% visualization options for the MVN distribution</span>
+options.visualization.mvn.showCenter = false;
+<span class="comment">% load some data and perform estimation</span>
+load <span class="string">data2d</span>
+D = mixturefactory(mvnfactory(2), 3);
+D.estimate(data, options)
+</pre><h2>Cross-validation options<a id="6"></a></h2><p>To enable cross-validation, you can set <tt>options.crossVal</tt> to <tt>true</tt> to use the default cross-validation options. Alternatively you may set special cross-validation options as fields in <tt>options.crossVal</tt> (as a structure) to customize cross-validation. For example the following code asks for half of the data to be used for cross-validation. The other cross-validation options will be set to their default values.</p><pre class="language-matlab">options.crossval.fraction = 0.5;
+</pre><p>Note that your data should be shuffled before using cross-validation.</p><p>The following table lists the cross-validation options:</p><div class="table-responsive"><table class="table table-striped table-bordered"><thead><tr><th>Name</th><th>Type</th><th>Default Value</th><th>Description</th></tr></thead><tbody><tr><td><tt>enabled</tt></td><td><tt>logical</tt></td><td><tt>true</tt></td><td><tt>Flag to enable cross-validation</tt></td></tr><tr><td><tt>fraction</tt></td><td><tt>double</tt></td><td><tt>0.2</tt></td><td><tt>Fraction of data to be used for cross validation. The rest of data is used for training.</tt></td></tr><tr><td><tt>tolIter</tt></td><td><tt>integer</tt></td><td><tt>10</tt></td><td><tt>Permitted number of iterations to have a rising cross-validation cost</tt></td></tr></tbody></table></div><h2><tt>statsfun</tt><a id="7"></a></h2><p>If you add a <tt>statsfun</tt> field containing a function handle with prototype <tt>stats = statsfun(D, theta, stats)</tt> to the <tt>options</tt> structure, it will be called after each iteration completes with the current distribution structure <tt>D</tt> and its parameter values <tt>theta</tt> and the statistics structure <tt>stats</tt> that will be logged in the <tt>info</tt> structure array as described <a href="estimation_statistics_structure.html">here</a>, and gives you a chance to modify the stats structure. (This is based on how <a href="http://www.manopt.org">Manopt</a> declares <tt>statsfun</tt> but omitting its <tt>problem</tt> structure).</p><p><b>Example</b></p><p>Use the following code to log all the points (parameter values) visited during the estimation process:</p><pre class="language-matlab">options.statsfun = @mystatsfun;
+<span class="keyword">function</span> stats = mystatsfun(theta, stats)
+    stats.theta = theta;
+<span class="keyword">end</span>
+</pre><p>This will log all the points (parameter values) visited during the estimation process in the <tt>info</tt> struct-array returned by the estimation function.</p><h2><tt>stopfun</tt><a id="8"></a></h2><p>If you add a <tt>stopfun</tt> field containing a function handle with prototype <tt>stopnow = stopfun(D, theta, info, last)</tt> to the <tt>options</tt> structure, it will be called after each iteration completes with the current distribution structure <tt>D</tt> and its parameter values <tt>theta</tt>, the whole <tt>info</tt> structure array built so far and an index <tt>last</tt> such that <tt>info(last)</tt> is the statistics structure corresponding to the current iteration (this is because <tt>info</tt> is pre-allocated, so that info(end) typically does not refer to the current iteration). The returned value <tt>stopnow</tt> should be a logical. If it is returned as <tt>true</tt>, the algorithm will terminate. (This is based on how <a href="http://www.manopt.org">Manopt</a> declares <tt>stopfun</tt> but omitting its <tt>problem</tt> structure).</p><p><b>Example</b></p><pre class="language-matlab">options.stopfun = @mystopfun;
+<span class="keyword">function</span> stopnow = mystopfun(D, theta, info, last)
+    stopnow = (last &gt;= 3 &amp;&amp; info(last-2).cost - info(last).cost &lt; 1e-3);
+<span class="keyword">end</span>
+</pre><p>This will tell the algorithm to exit as soon as two successive iterations combined have decreased the cost (negative log-likelihood) by less than <tt>1e-3</tt>.</p><h2><tt>costgrad</tt><a id="9"></a></h2><p>If you add a <tt>costgrad</tt> field containing a function handle with prototype <tt>[cost, grad] = costgrad(theta)</tt> to the <tt>options</tt> structure, it will be used instead of the default cost/grad function (<tt>mxe_costgrad.m</tt>) to calculate the cost <tt>cost</tt> and/or its Riemannian gradient <tt>grad</tt> at every point <tt>theta</tt> during the estimation.</p><p><b>Example</b></p><p>The following example overrides the default cost/grad function and implements a preliminary one:</p><pre class="language-matlab"><span class="keyword">function</span> test
+    D = mvnfactory(1);
+    data = randn(1, 1000);
+    options.solver = <span class="string">'cg'</span>;
+    options.theta0 = D.randparam();
+    options.costgrad = @mycostgrad;
+    D.estimate(data, options);
+    <span class="comment">%</span>
+    <span class="comment">%</span>
+    <span class="keyword">function</span> [cost, grad] = mycostgrad(theta)
+        [ll, store] = D.ll(theta, data);
+        cost = -ll;
+        <span class="keyword">if</span> nargout &gt; 1
+            dll = D.llgrad(theta, data, store);
+            grad = D.M.egrad2rgrad(theta, dll); <span class="comment">% convert the gradient to Riemannian</span>
+            grad = D.M.lincomb(theta, -1, grad); <span class="comment">% negate the gradient</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>Split-and-merge options<a id="10"></a></h2><p>Options for split-and-merge algorithms can be set through fields in the <tt>options.sm</tt> structure. The following options are common. Additional options for each algorithm are described in the documentation of the respective function.</p><div><ul><li><b><tt>splitCriterion</tt></b> (default <tt>'kl'</tt>) : Criterion for selecting a component to be split. Following values are available:</li></ul></div><p>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><tt>'kl'</tt></td>
+                    <td>Maximum local KL-divergence between component distribution and empirical distribution</td>
+                </tr>
+                <tr>
+                    <td><tt>'mll'</tt></td>
+                    <td>Minimum mean local log-likelihood</td>
+                </tr>
+                <tr>
+                    <td><tt>'entropy'</tt></td>
+                    <td>Maximum entropy</td>
+                </tr>
+                <tr>
+                    <td><tt>'rand'</tt></td>
+                    <td>Random split</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</p><div><ul><li><b><tt>mergeCriterion</tt></b> (default <tt>'kl'</tt>) : Criterion for selecting two components to be merged. Following values are available:</li></ul></div><p>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><tt>'kl'</tt></td>
+                    <td>Minimum symmetric KL-divergence</td>
+                </tr>
+                <tr>
+                    <td><tt>'overlap'</tt></td>
+                    <td>Maximum distribution overlap</td>
+                </tr>
+                <tr>
+                    <td><tt>'rand'</tt></td>
+                    <td>Random merge</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</p><div><ul><li><b><tt>splitInit</tt></b> (default <tt>'default'</tt>) : Initialization method for the components resulting from a split. You can set this field to 'default' to use the default methods for each parameter, or you may give a function handle implementing your custom initialization. The referred function should have the following prototype:</li></ul></div><pre class="language-matlab"><span class="keyword">function</span> [newtheta, store] = splitinit(D, idx, theta, options, data, store)
+</pre><p>where <tt>D</tt> is the mixture distribution structure, <tt>idx</tt> is the index of the component to be split, <tt>theta</tt> is the parameter structure for the mixture distribution, <tt>options</tt> is the full options structure, <tt>data</tt> is the <a href="data_input.html">given data</a>, and <tt>store</tt> can be used for <a href="caching.html">caching purposes</a>. The output <tt>newtheta</tt> is the parameter structure of the new mixture after the split (containing the parameters for an additional component). You should put the initialized parameter values for the first splitted component at <tt>newtheta.D{idx}</tt> and for the second in <tt>newtheta.D{end}</tt>. The component weights in <tt>newtheta.p</tt> should also be updated accordingly.</p><div><ul><li><b><tt>mergeInit</tt></b> (default <tt>'default'</tt>) : Initialization method for the component resulting from a merge. You can set this field to 'default' to use the default methods for each parameter, or you may give a function handle implementing your custom initialization. The referred function should have the following prototype:</li></ul></div><pre class="language-matlab"><span class="keyword">function</span> [newtheta, store] = mergeinit(D, idx1, idx2, theta, options, data, store)
+</pre><p>where <tt>D</tt> is the mixture distribution structure, <tt>idx1</tt> and <tt>idx2</tt> are the indices of the components to be merged, <tt>theta</tt> is the parameter structure for the mixture distribution, <tt>options</tt> is the full options structure, <tt>data</tt> is the <a href="data_input.html">given data</a>, and <tt>store</tt> can be used for <a href="caching.html">caching purposes</a>. The output <tt>newtheta</tt> is the parameter structure of the new mixture after the merge (with one less item than <tt>theta</tt>). You should put the initialized parameter values for the merged component at <tt>newtheta.D{idx1}</tt> and remove <tt>theta.D{idx2}</tt> in <tt>newtheta</tt>. The component weights in <tt>newtheta.p</tt> should also be updated accordingly.</p><p><b>Example</b></p><p>If you want the split-and-merge algorithm to select the component with maximum entropy when it requires to split a component, use the following option:</p><pre class="language-matlab">options.sm.splitCriterion = <span class="string">'entropy'</span>;
+</pre><p><b>Example</b></p><p>The following code shows how to use <tt>options.sm.splitInit</tt> to manually initialize the parameters of splitted components for a mixture of Gaussians. For the mean vectors, it uses k-means clustering (with k=2) on 10 data points that have the highest posterior probability under the original component. Each covariance matrix is initialized as a unit matrix with the same volume as the original component. The weight for each of the splitted components is set to half the weight of the original component.</p><pre class="language-matlab">options.sm.splitinit = @splitinit;
+<span class="keyword">function</span> [newtheta, store] = splitinit(D, idx, theta, options, data, store)
+  <span class="comment">%</span>
+  <span class="comment">% add parameters for an additional component</span>
+  newtheta = theta;
+  newtheta.D{end+1} = theta.D{idx};
+  <span class="comment">% initialize the weights</span>
+  newtheta.p(idx) = theta.p(idx) / 2;
+  newtheta.p(end+1) = newtheta.p(idx);
+  <span class="comment">% initialize the means</span>
+  Didx = D.component(idx);
+  pp = Didx.llvec(theta.D{idx}, data);
+  [~, I] = sort(pp, <span class="string">'descend'</span>);
+  I = I(1:10);
+  [~, C] = kmeans(data(:,I).', 2);
+  newtheta.D{idx}.mu = C(1,:).';
+  newtheta.D{end}.mu = C(2,:).';
+  <span class="comment">% initialize the covariance matrices</span>
+  A = theta.D{idx}.sigma;
+  d = size(A,1);
+  newtheta.D{idx}.sigma = det(A)^(1/d) * eye(d);
+  newtheta.D{end}.sigma = newtheta.D{idx}.sigma;
+<span class="keyword">end</span>
+</pre><h2>Inner options<a id="11"></a></h2><p>Some estimation functions contain inner estimations that might need to be customized separately from the main estimation function. The options for the inner estimations can be set in the special field <tt>options.inner</tt>. This field can contain usual options as its sub-fields (e.g. <tt>options.inner.maxIter</tt>), but some special options like <tt>prevInfo</tt> might be disregarded.</p><p>Some functions might be more specific about their inner estimation options and let you set specific options for each type of inner estimation they use. This capability is provided through one more level of sub-fields in <tt>options.inner</tt>. For example you can set the maximum iterations for the partial inner estimations of the split-and-merge algorithms through <tt>options.inner.partial.maxIter</tt>. This should be documented in the API reference for the respective function.</p></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1">List of commonly-used options</a></li><li><a class="list-group-item" href="#2">Solvers</a></li><li><a class="list-group-item" href="#3">Mini-batching options</a></li><li><a class="list-group-item" href="#4">Plotting options</a></li><li><a class="list-group-item" href="#5">Visualization options</a></li><li><a class="list-group-item" href="#6">Cross-validation options</a></li><li><a class="list-group-item" href="#7"><tt>statsfun</tt></a></li><li><a class="list-group-item" href="#8"><tt>stopfun</tt></a></li><li><a class="list-group-item" href="#9"><tt>costgrad</tt></a></li><li><a class="list-group-item" href="#10">Split-and-merge options</a></li><li><a class="list-group-item" href="#11">Inner options</a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/site.js"></script>
+
+  </body>
+
+</html>

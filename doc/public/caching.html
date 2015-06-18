@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/caching.html">
+
+    <title>Caching Intermediate Results | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Caching Intermediate Results
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li class="active">caching</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><!--introduction--><!--/introduction--><p>Some distribution functions allow for a special input and output named <tt>store</tt>. This is a structure wherein the function can store the intermediate calculation results that it has done for a set of inputs, as its fields. These results might speed up things when calling another function of the distribution with the same set of inputs. For instance, the usual syntax for the <tt>ll</tt> function which calculates log-likelihoods is:</p><pre class="language-matlab">ll = D.ll(theta, data)
+</pre><p>But this function also admits the following syntax:</p><pre class="language-matlab">[ll, store] = D.ll(theta, data, store)
+</pre><p>where, either <tt>store</tt> is optional. If we also need the gradient of the log-likelihood (<tt>llgrad</tt>) for the same <tt>theta</tt> and <tt>data</tt>, we can use the <tt>store</tt> output from the <tt>ll</tt> function as an input to the <tt>llgrad</tt> function to prevent <tt>llgrad</tt> from re-calculating the intermediate values which are shared in the two functions:</p><pre class="language-matlab">[ll, store] = D.ll(theta, data);
+dll         = D.llgrad(theta, data, store);
+</pre><p>Please note that you should only share the <tt>store</tt> while working with the same distribution and inputs (<tt>theta</tt> and <tt>data</tt>). When these are changed, a new store structure should be used, or you will get wrong results.</p></div><div id="sidebar" class="col-md-3"></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/site.js"></script>
+
+  </body>
+
+</html>

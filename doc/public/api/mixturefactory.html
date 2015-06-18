@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/api/mixturefactory.html">
+
+    <title>mixturefactory | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">mixturefactory
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//api/index.html">api</a></li>
+			
+		
+	
+		
+			
+				<li class="active">mixturefactory</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><h2><tt>mixturefactory</tt><a id="1"></a></h2><p>Construct a mixture distribution structure</p><p><b>Syntax</b></p><pre class="language-matlab">D = mixturefactory(ComponentD, num)
+D = mixturefactory(ComponentD)
+</pre><p><b>Description</b></p><p><tt>D = mixturefactory(ComponentD, num)</tt> returns a structure representing a mixture distribution. <tt>ComponentD</tt> is a distribution structure defining mixture component distribution type, and <tt>num</tt> is the number of mixture components.</p><p><tt>D = mixturefactory(ComponentD)</tt> where <tt>ComponentD</tt> is a cell array of distribution structures defined on the same data space, constructs a heterogeneous mixture distribution <tt>D</tt> where each component may be of a different distribution type.</p><p><b>Distribution Parameters</b></p><div><ul><li><b><tt>D</tt></b> (<tt>num-by-1</tt> cell array of distribution parameter structures) : Contains the parameters for each component.</li><li><b><tt>p</tt></b> (<tt>num-by-1</tt> vector) : The vector of component weights.</li></ul></div><p><b>Probability Density Function</b></p><p>The distribution has the following density:</p><p><img src="mixturefactory_eq11603.png" alt="$$ f(x)=\sum_{k=1}^{num} \pi_k f_k(x) $$"></p><p>where <img src="mixturefactory_eq63720.png" alt="$num$"> is the number of components, <img src="mixturefactory_eq81327.png" alt="$\pi_k$"> is the weight for the k-th component, and <img src="mixturefactory_eq72757.png" alt="$f_k$"> represents the density function for the k-th component.</p><p><b>Example 1</b></p><pre class="language-matlab"><span class="comment">% Construct a mixture of three bivariate normal distributions:</span>
+D = mixturefactory(mvnfactory(2), 3);
+<span class="comment">% Build a parameter structure for it:</span>
+theta.D{1} = struct(<span class="string">'mu'</span>, [3; -1], <span class="string">'sigma'</span>, [2 1; 3 4]);
+theta.D{2} = struct(<span class="string">'mu'</span>, [0; 3], <span class="string">'sigma'</span>, [3 0; 0 4]);
+theta.D{3} = struct(<span class="string">'mu'</span>, [-4; -1], <span class="string">'sigma'</span>, [4 0; 0 3]);
+theta.p = [0.4; 0.3; 0.3];
+<span class="comment">% Plot the PDF:</span>
+x = -10:0.2:10;
+y = -10:0.2:10;
+[X, Y] = meshgrid(x, y);
+data = [X(:) Y(:)]';
+f = D.pdf(theta, data);
+surf(X, Y, reshape(f, size(X)));
+</pre><p><img vspace="5" hspace="5" src="img/mixturefactory_01.png" alt=""> </p><p><b>Example 2</b></p><pre class="language-matlab"><span class="comment">% Construct a heterogeneous mixture distribution</span>
+<span class="comment">% containing a gamma and a Gaussian component:</span>
+D = mixturefactory({gammafactory(); mvnfactory(1)});
+<span class="comment">% Build a parameter structure for it:</span>
+theta.D{1} = struct(<span class="string">'a'</span>, 2, <span class="string">'b'</span>, 1);
+theta.D{2} = struct(<span class="string">'mu'</span>, 7, <span class="string">'sigma'</span>, 4);
+theta.p = [0.7; 0.3];
+<span class="comment">% Plot the PDF:</span>
+x = 0:0.1:10;
+plot(x, D.pdf(theta, x))
+</pre><p><img vspace="5" hspace="5" src="img/mixturefactory_02.png" alt=""> </p><h2><tt>name</tt><a id="2"></a></h2><p>See <a href="doc_distribution_common.html#1">distribution structure common members</a>.</p><p>Flag to control the memory usage (resulting code will be slower)</p><h2><tt>M</tt><a id="7"></a></h2><p>See <a href="doc_distribution_common.html#2">distribution structure common members</a>.</p><h2><tt>num</tt><a id="8"></a></h2><p>Number of components (excluding any fixed components)</p><p><b>Syntax</b></p><pre class="language-matlab">num = D.num()
+</pre><p><b>Description</b></p><p><tt>num = D.num()</tt> returns the number of components in the mixture <tt>D</tt>. When some components are fixed, only the number of variable components is returned.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><h2><tt>numfixed</tt><a id="9"></a></h2><p>Number of fixed components</p><p><b>Syntax</b></p><pre class="language-matlab">numfixed = D.numfixed()
+</pre><p><b>Description</b></p><p><tt>numfixed = D.numfixed()</tt> returns the number of fixed components in the mixture <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><h2><tt>numtotal</tt><a id="10"></a></h2><p>Total number of components</p><p><b>Syntax</b></p><pre class="language-matlab">numtotal = D.numtotal()
+</pre><p><b>Description</b></p><p><tt>numtotal = D.numtotal()</tt> returns the total number of components (variable and fixed) in the mixture <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><h2><tt>nump</tt><a id="11"></a></h2><p>Number of elements in the component weight vector (theta.p)</p><p><b>Syntax</b></p><pre class="language-matlab">nump = D.nump()
+</pre><p><b>Description</b></p><p><tt>nump = D.nump()</tt> returns the number of elements in the component weight vector in the parameters for the mixture <tt>D</tt>. When there are no fixed components, this is the same as the number of mixture components. When some components are fixed, <tt>nump</tt> equals the number of variable components plus one, since in addition to the weights for the variable components, we store another weight which can scale the weights of the fixed components uniformly.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><h2><tt>component</tt><a id="12"></a></h2><p>Component distributions</p><p><b>Syntax</b></p><pre class="language-matlab">D_k = D.component(idx)
+</pre><p><b>Description</b></p><p><tt>D_k = D.component(idx)</tt> where <tt>idx</tt> is the index of a component, gives the component distribution structure at <tt>idx</tt>.</p><p><tt>D_k = D.component(idx)</tt> where <tt>idx</tt> is an index vector with more than one element, returns a cell array of the distribution structures indexed in <tt>idx</tt>.</p><p>Valid range for the indices is from 1 to <tt>D.numtotal()</tt>.</p><h2><tt>varD</tt><a id="13"></a></h2><p>Variable component distributions</p><p><b>Syntax</b></p><pre class="language-matlab">varD_k = D.varD(idx)
+</pre><p><b>Description</b></p><p><tt>varD_k = D.varD(idx)</tt> where <tt>idx</tt> is the index of a variable component, gives the variable component distribution structure at <tt>idx</tt>.</p><p><tt>varD_k = D.varD(idx)</tt> where <tt>idx</tt> is an index vector with more than one element, returns a cell array of the variable distribution structures indexed in <tt>idx</tt>.</p><p>Valid range for the indices is from 1 to <tt>D.num()</tt>.</p><h2><tt>fixedD</tt><a id="14"></a></h2><p>Fixed component distributions</p><p><b>Syntax</b></p><pre class="language-matlab">fixedD_k = D.fixedD(idx)
+</pre><p><b>Description</b></p><p><tt>fixedD_k = D.fixedD(idx)</tt> where <tt>idx</tt> is the index of a fixed component, gives the fixed component distribution structure at <tt>idx</tt>.</p><p><tt>fixedD_k = D.fixedD(idx)</tt> where <tt>idx</tt> is an index vector with more than one element, returns a cell array of the fixed distribution structures indexed in <tt>idx</tt>.</p><p>Valid range for the indices is from 1 to <tt>D.numfixed()</tt>.</p><h2><tt>fixedparam</tt><a id="15"></a></h2><p>Parameters stored for the fixed components</p><p><b>Syntax</b></p><pre class="language-matlab">fixedtheta = D.fixedparam()
+</pre><p><b>Description</b></p><p><tt>fixedtheta = D.fixedparam()</tt> returns the parameter structure stored for the fixed components in the mixture <tt>D</tt>. The number of elements in <tt>fixedtheta.D</tt> and <tt>fixedtheta.p</tt> equals <tt>D.numfixed()</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><h2><tt>subparam</tt><a id="16"></a></h2><p>Extract a subset of component parameters</p><p><b>Syntax</b></p><pre class="language-matlab">subtheta = D.subparam(theta, idx)
+</pre><p><b>Description</b></p><p><tt>subtheta = D.subparam(theta, idx)</tt> returns the mixture parameter structure <tt>subtheta</tt> containing the parameters for the subset of components indexed by <tt>idx</tt>, from <tt>theta</tt>. An additional weight is added to <tt>subtheta.p</tt> to make the sum of the weights equal to one.</p><p>When some components are fixed, you can pass indices from <tt>D.num() + 1</tt> to <tt>D.num() + D.numfixed()</tt>, to refer to fixed components.</p><h2><tt>fullparam</tt><a id="17"></a></h2><p>Get the parameters for the entire mixture, given variable component parameters</p><p><b>Syntax</b></p><pre class="language-matlab">fulltheta = D.fullparam(theta)
+</pre><p><b>Description</b></p><p><tt>fulltheta = D.fullparam(theta)</tt> can be used when some components are fixed, to obtain the parameters for all the components, given the partial parameters <tt>theta</tt> corresponding to the variable components.</p><h2><tt>addcomponent</tt><a id="18"></a></h2><p>Add a mixture component (to the variable components)</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.addcomponent(CmptD)
+[newD, newtheta] = D.addcomponent(CmptD, theta, CmptTheta)
+</pre><p><b>Description</b></p><p><tt>newD = D.addcomponent(CmptD)</tt> returns <tt>newD</tt>, a mixture distribution with the same components as <tt>D</tt> plus the new variable component distribution <tt>CmptD</tt>.</p><p><tt>[newD, newtheta] = D.addcomponent(CmptD, theta, CmptTheta)</tt> also returns <tt>newtheta</tt>, the parameters for <tt>newD</tt>, given <tt>theta</tt>, the parameters for <tt>D</tt>, and <tt>CmptTheta</tt>, the parameters for <tt>CmptD</tt>.</p><h2><tt>removecomponent</tt><a id="19"></a></h2><p>Remove a component</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.removecomponent(idx)
+[newD, newtheta] = D.removecomponent(idx, theta)
+</pre><p><b>Description</b></p><p><tt>newD = D.removecomponent(idx)</tt> returns <tt>newD</tt>, a mixture distribution the same as <tt>D</tt> where the component at index <tt>idx</tt> is removed from its components.</p><p><tt>[newD, newtheta] = D.removecomponent(idx, theta)</tt> also returns <tt>newtheta</tt>, the parameters for <tt>newD</tt>, given <tt>theta</tt>, the parameters for <tt>D</tt>.</p><h2><tt>invertindex</tt><a id="20"></a></h2><p>Obtain an inverted component index vector (Find the other components)</p><p><b>Syntax</b></p><pre class="language-matlab">invidx = D.invertindex(idx)
+invidx = D.invertindex(idx, <span class="string">'fixed'</span>)
+</pre><p><b>Description</b></p><p><tt>invidx = D.invertindex(idx)</tt> returns the indices of the variable components other than those indexed  in <tt>idx</tt>.</p><p><tt>invidx = D.invertindex(idx, 'fixed')</tt> returns the indices of the fixed components other than those indexed  in <tt>idx</tt>.</p><h2><tt>fixate</tt><a id="21"></a></h2><p>Make some variable component(s) fixed</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.fixate(idx, theta)
+[newD, theta] = D.fixate(idx, theta)
+[newD, theta] = D.fixate(idx, theta, data)
+[newD, theta, idxFixed] = D.fixate(<span class="keyword">...</span><span class="comment">)</span>
+[newD, theta, idxFixed, idxMap] = D.fixate(<span class="keyword">...</span><span class="comment">)</span>
+</pre><h2><tt>unfix</tt><a id="22"></a></h2><p>Make some fixed component(s) variable</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.unfix(idx)
+[newD, theta] = D.unfix(idx, idxFixated, theta)
+[newD, theta] = D.unfix(idx, idxFixated, theta, data)
+[newD, theta, idxUnfixed] = D.unfix(<span class="keyword">...</span><span class="comment">)</span>
+[newD, theta, idxUnfixed, idxMap] = D.unfix(<span class="keyword">...</span><span class="comment">)</span>
+</pre><h2><tt>splitinit</tt><a id="23"></a></h2><p>Calculate the initial parameters for two splitted mixture components to be substituted for the given component.</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.splitinit(idx, theta)
+theta = D.splitinit(idx, theta, options)
+theta = D.splitinit(idx, theta, options, data)
+[theta, store] = D.splitinit(idx, theta, options, data, store)
+</pre><h2><tt>split</tt><a id="24"></a></h2><p>Split a variable component in two</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.split(idx)
+[newD, newtheta] = D.split(idx, theta)
+[newD, newtheta] = D.split(idx, theta, options)
+[newD, newtheta] = D.split(idx, theta, options, data)
+[newD, newtheta, idxSplitted, idxMap] = D.split(<span class="keyword">...</span><span class="comment">)</span>
+[newD, newtheta, idxSplitted, idxMap, store] = D.split(idx, theta, options, data, store)
+</pre><h2><tt>mergeinit</tt><a id="25"></a></h2><p>Calculate the initial parameters for a merged mixture component to be substituted for two given components.</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.mergeinit(idx1, idx2, theta)
+theta = D.mergeinit(idx1, idx2, theta, options)
+theta = D.mergeinit(idx1, idx2, theta, options, data)
+[theta, store] = D.mergeinit(idx1, idx2, theta, options, data, store)
+</pre><h2><tt>merge</tt><a id="26"></a></h2><p>Merge two variable components into one</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.merge(idx1, idx2)
+[newD, newtheta] = D.merge(idx1, idx2, theta)
+[newD, newtheta] = D.merge(idx1, idx2, theta, options)
+[newD, newtheta] = D.merge(idx1, idx2, theta, options, data)
+[newD, newtheta, idxMerged, idxMap] = D.merge(<span class="keyword">...</span><span class="comment">)</span>
+[newD, newtheta, idxMerged, idxMap, store] = D.merge(idx1, idx2, theta, options, data, store)
+</pre><h2><tt>splitcandidates</tt><a id="27"></a></h2><p>Find split candidates</p><p><b>Syntax</b></p><pre class="language-matlab">idx = D.splitcandidates(theta, data)
+idx = D.splitcandidates(theta, data, options)
+idx = D.splitcandidates(theta, data, options, n)
+</pre><h2><tt>mergecandidates</tt><a id="28"></a></h2><p>Find merge candidates</p><p><b>Syntax</b></p><pre class="language-matlab">[idx1, idx2] = D.mergecandidates(theta, data)
+[idx1, idx2] = D.mergecandidates(theta, data, options)
+[idx1, idx2] = D.mergecandidates(theta, data, options, n)
+</pre><h2><tt>dim</tt><a id="29"></a></h2><p>See <a href="doc_distribution_common.html#3">distribution structure common members</a>.</p><h2><tt>datadim</tt><a id="30"></a></h2><p>See <a href="doc_distribution_common.html#4">distribution structure common members</a>.</p><h2><tt>weighting</tt><a id="32"></a></h2><p>Calculate the weighting (posterior probability) of each data point in relation to each mixture component</p><p><b>Syntax</b></p><pre class="language-matlab">component_weights = D.weighting(theta, data)
+[component_weights, store] = D.weighting(theta, data, store)
+</pre><h2><tt>ll</tt><a id="33"></a></h2><p>See <a href="doc_distribution_common.html#5">distribution structure common members</a>.</p><h2><tt>llvec</tt><a id="34"></a></h2><p>See <a href="doc_distribution_common.html#6">distribution structure common members</a>.</p><h2><tt>llgrad</tt><a id="35"></a></h2><p>See <a href="doc_distribution_common.html#7">distribution structure common members</a>.</p><h2><tt>regcost</tt><a id="36"></a></h2><p>Regularizer cost</p><p><b>Syntax</b></p><pre class="language-matlab">reg = regcost(theta, data)
+[reg, store] = regcost(theta, data, store)
+</pre><h2><tt>reggrad</tt><a id="37"></a></h2><p>Regularizer gradient with respect to parameters</p><p><b>Syntax</b></p><pre class="language-matlab">dll = reggrad(theta, data)
+[dll, store] = reggrad(theta, data, store)
+</pre><h2><tt>llgraddata</tt><a id="38"></a></h2><p>See <a href="doc_distribution_common.html#8">distribution structure common members</a>.</p><h2><tt>cdf</tt><a id="39"></a></h2><p>See <a href="doc_distribution_common.html#9">distribution structure common members</a>.</p><h2><tt>gaussianize</tt><a id="40"></a></h2><h2><tt>pdf</tt><a id="41"></a></h2><p>See <a href="doc_distribution_common.html#10">distribution structure common members</a>.</p><h2><tt>sample</tt><a id="42"></a></h2><p>See <a href="doc_distribution_common.html#11">distribution structure common members</a>.</p><p>You can also get the component labels for each data point using the following syntax:</p><pre class="language-matlab">[data, label] = D.sample(<span class="keyword">...</span><span class="comment">)</span>
+</pre><h2><tt>randparam</tt><a id="43"></a></h2><p>See <a href="doc_distribution_common.html#12">distribution structure common members</a>.</p><h2><tt>init</tt><a id="44"></a></h2><p>See <a href="doc_distribution_common.html#13">distribution structure common members</a>.</p><h2><tt>estimatedefault</tt><a id="45"></a></h2><p>Default estimation function for mixture distribution. This function implements the expectation maximization (EM) method.</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.estimatedefault(data)
+theta = D.estimatedefault(data, options)
+[theta, D] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info, options] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>theta = D.estimatedefault(data)</tt> returns estimated parameters for the distribution <tt>D</tt>, using <tt>data</tt>.</p><p><tt>theta = D.estimatedefault(data, options)</tt> utilizes applicable options from the <tt>options</tt> structure in the estimation procedure.</p><p><tt>[theta, D] = D.estimatedefault(...)</tt> also returns <tt>D</tt>, the distribution structure for which <tt>theta</tt> is applicable. (This is the same as the distribution structure <tt>D</tt> from which you called <tt>estimate</tt>, and so it should not normally be used. The purpose of including it in the output is to maintain compatibility with other estimation functions).</p><p><tt>[theta, D, info] = D.estimatedefault(...)</tt> also returns <tt>info</tt>, a structure array containing information about successive iterations performed by iterative estimation functions.</p><p><tt>[theta, D, info, options] = D.estimatedefault(...)</tt> also returns the effective <tt>options</tt> used, so you can see what default values the function used on top of the options you possibly specified.</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>. You may also want to read about <a href="../estimation_options.html"><tt>options</tt></a> or <a href="../estimation_statistics_structure.html"><tt>info</tt></a> arguments.</p><p><b>Available Options</b></p><p>This function supports the following options from the options described in <a href="../estimation_options.html">estimation options</a>.</p><div><ul><li><b><tt>theta0</tt></b></li><li><b><tt>verbosity</tt></b></li><li><b><tt>plotCost</tt></b></li><li><b><tt>crossVal</tt></b></li><li><b><tt>minIter</tt></b></li><li><b><tt>maxIter</tt></b></li><li><b><tt>maxTime</tt></b></li><li><b><tt>tolCost</tt></b></li><li><b><tt>tolCostDiff</tt></b></li><li><b><tt>statsfun</tt></b></li><li><b><tt>stopfun</tt></b></li></ul></div><p><b>Returned <tt>info</tt> fields</b></p><p>This function puts the following fields in the returned <tt>info</tt> structure array. You can read more about them in our documentation on <a href="../estimation_statistics_structure.html">estimation statistics structure</a>.</p><div><ul><li><b><tt>iter</tt></b></li><li><b><tt>cost</tt></b></li><li><b><tt>time</tt></b></li><li><b><tt>cvCost</tt></b></li></ul></div><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a mixture of two Gaussian distributions</span>
+D = mixturefactory(mvnfactory(1), 2);
+<span class="comment">% generate 1000 random data points</span>
+data = [randn(1,300).*2-5, randn(1,700).*3+10];
+<span class="comment">% use an appropriate theta0</span>
+options.theta0 = D.init(data);
+<span class="comment">% estimate mixture parameters using the EM algorithm</span>
+theta = D.estimatedefault(data, options)
+</pre><h2><tt>estimatepartial</tt><a id="46"></a></h2><p>Estimate parameters for a subset of components, while fixing the others</p><p><b>Syntax</b></p><pre class="language-matlab">newtheta = D.estimatepartial(idx, theta, data)
+newtheta = D.estimatepartial(idx, theta, data, options)
+[newtheta, newD] = D.estimatepartial(<span class="keyword">...</span><span class="comment">)</span>
+[newtheta, newD, info] = D.estimatepartial(<span class="keyword">...</span><span class="comment">)</span>
+[newtheta, newD, info, options] = D.estimatepartial(<span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Note:</b> <tt>options.theta0</tt> is ignored and the given <tt>theta</tt> is used as the initial point.</p><h2><tt>penalizerparam</tt><a id="47"></a></h2><p>See <a href="doc_distribution_common.html#15">distribution structure common members</a>.</p><p><b>Penalizer Info</b></p><p>The default penalizer for the mixture distribution is the sum of the default penalizers of its components.</p><h2><tt>penalizercost</tt><a id="48"></a></h2><p>See <a href="doc_distribution_common.html#16">distribution structure common members</a>.</p><h2><tt>penalizergrad</tt><a id="49"></a></h2><p>See <a href="doc_distribution_common.html#17">distribution structure common members</a>.</p><h2><tt>sumparam</tt><a id="50"></a></h2><p>See <a href="doc_distribution_common.html#18">distribution structure common members</a>.</p><h2><tt>scaleparam</tt><a id="51"></a></h2><p>See <a href="doc_distribution_common.html#19">distribution structure common members</a>.</p><h2><tt>sumgrad</tt><a id="52"></a></h2><p>See <a href="doc_distribution_common.html#20">distribution structure common members</a>.</p><h2><tt>scalegrad</tt><a id="53"></a></h2><p>See <a href="doc_distribution_common.html#21">distribution structure common members</a>.</p><h2><tt>entropy</tt><a id="54"></a></h2><p>See <a href="doc_distribution_common.html#22">distribution structure common members</a>.</p><h2><tt>kl</tt><a id="55"></a></h2><p>See <a href="doc_distribution_common.html#23">distribution structure common members</a>.</p><h2><tt>AICc</tt><a id="56"></a></h2><p>See <a href="doc_distribution_common.html#24">distribution structure common members</a>.</p><h2><tt>BIC</tt><a id="57"></a></h2><p>See <a href="doc_distribution_common.html#25">distribution structure common members</a>.</p><h2><tt>MML</tt><a id="59"></a></h2><p>Calculate minimum message length information criterion</p><p><b>Syntax</b></p><pre class="language-matlab">mml = D.MML(theta, data)
+[mml, gradMML] = D.MML(theta, data)
+</pre><h2><tt>BICm</tt><a id="60"></a></h2><p>Calculate modified Bayesian information criterion</p><p><b>Syntax</b></p><pre class="language-matlab">bic = D.BICm(theta, data)
+</pre><h2><tt>AICmc</tt><a id="61"></a></h2><p>Calculate modified corrected Akaike information criterion</p><p><b>Syntax</b></p><pre class="language-matlab">aicc = D.AICmc(theta, data)
+[aicc, gradAicc] = D.AICmc(theta, data)
+</pre><h2><tt>display</tt><a id="62"></a></h2><p>See <a href="doc_distribution_common.html#26">distribution structure common members</a>.</p><h2><tt>visualize</tt><a id="63"></a></h2></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>mixturefactory</tt></a></li><li><a class="list-group-item" href="#2"><tt>name</tt></a></li><li><a class="list-group-item" href="#7"><tt>M</tt></a></li><li><a class="list-group-item" href="#8"><tt>num</tt></a></li><li><a class="list-group-item" href="#9"><tt>numfixed</tt></a></li><li><a class="list-group-item" href="#10"><tt>numtotal</tt></a></li><li><a class="list-group-item" href="#11"><tt>nump</tt></a></li><li><a class="list-group-item" href="#12"><tt>component</tt></a></li><li><a class="list-group-item" href="#13"><tt>varD</tt></a></li><li><a class="list-group-item" href="#14"><tt>fixedD</tt></a></li><li><a class="list-group-item" href="#15"><tt>fixedparam</tt></a></li><li><a class="list-group-item" href="#16"><tt>subparam</tt></a></li><li><a class="list-group-item" href="#17"><tt>fullparam</tt></a></li><li><a class="list-group-item" href="#18"><tt>addcomponent</tt></a></li><li><a class="list-group-item" href="#19"><tt>removecomponent</tt></a></li><li><a class="list-group-item" href="#20"><tt>invertindex</tt></a></li><li><a class="list-group-item" href="#21"><tt>fixate</tt></a></li><li><a class="list-group-item" href="#22"><tt>unfix</tt></a></li><li><a class="list-group-item" href="#23"><tt>splitinit</tt></a></li><li><a class="list-group-item" href="#24"><tt>split</tt></a></li><li><a class="list-group-item" href="#25"><tt>mergeinit</tt></a></li><li><a class="list-group-item" href="#26"><tt>merge</tt></a></li><li><a class="list-group-item" href="#27"><tt>splitcandidates</tt></a></li><li><a class="list-group-item" href="#28"><tt>mergecandidates</tt></a></li><li><a class="list-group-item" href="#29"><tt>dim</tt></a></li><li><a class="list-group-item" href="#30"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#32"><tt>weighting</tt></a></li><li><a class="list-group-item" href="#33"><tt>ll</tt></a></li><li><a class="list-group-item" href="#34"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#35"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#36"><tt>regcost</tt></a></li><li><a class="list-group-item" href="#37"><tt>reggrad</tt></a></li><li><a class="list-group-item" href="#38"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#39"><tt>cdf</tt></a></li><li><a class="list-group-item" href="#40"><tt>gaussianize</tt></a></li><li><a class="list-group-item" href="#41"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#42"><tt>sample</tt></a></li><li><a class="list-group-item" href="#43"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#44"><tt>init</tt></a></li><li><a class="list-group-item" href="#45"><tt>estimatedefault</tt></a></li><li><a class="list-group-item" href="#46"><tt>estimatepartial</tt></a></li><li><a class="list-group-item" href="#47"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#48"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#49"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#50"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#51"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#52"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#53"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#54"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#55"><tt>kl</tt></a></li><li><a class="list-group-item" href="#56"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#57"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#59"><tt>MML</tt></a></li><li><a class="list-group-item" href="#60"><tt>BICm</tt></a></li><li><a class="list-group-item" href="#61"><tt>AICmc</tt></a></li><li><a class="list-group-item" href="#62"><tt>display</tt></a></li><li><a class="list-group-item" href="#63"><tt>visualize</tt></a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>

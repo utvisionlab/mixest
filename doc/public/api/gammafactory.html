@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/api/gammafactory.html">
+
+    <title>gammafactory | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">gammafactory
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//api/index.html">api</a></li>
+			
+		
+	
+		
+			
+				<li class="active">gammafactory</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><h2><tt>gammafactory</tt><a id="1"></a></h2><p>Construct a gamma distribution structure</p><p><b>Syntax</b></p><pre class="language-matlab">D = gammafactory()
+</pre><p><b>Description</b></p><p><tt>D = gammafactory()</tt> returns a structure representing a gamma distribution.</p><p><b>Distribution Parameters</b></p><div><ul><li><b><tt>a</tt></b> (positive scalar) : The shape parameter.</li><li><b><tt>b</tt></b> (positive scalar) : The scale parameter.</li></ul></div><p><b>Probability Density Function</b></p><p>The distribution has the following density:</p><p><img src="gammafactory_eq27533.png" alt="$$ f(x)=\frac{1}{\Gamma(a)b^a} x^{a-1} \exp(-\frac{x}{b}) $$"></p><p>where <img src="gammafactory_eq27608.png" alt="$a &gt; 0$"> is the shape parameter, <img src="gammafactory_eq28601.png" alt="$b &gt; 0$"> is the scale parameter and <img src="gammafactory_eq08278.png" alt="$\Gamma$"> is the gamma function.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% Construct a gamma distribution</span>
+D = gammafactory();
+<span class="comment">% Plot the PDF for various values of the shape parameter:</span>
+data = 0:0.1:10;
+f = zeros(4, numel(data));
+<span class="keyword">for</span> a = 1:4
+    theta = struct(<span class="string">'a'</span>, a, <span class="string">'b'</span>, 1);
+    f(a,:) = D.pdf(theta, data);
+<span class="keyword">end</span>
+plot(data, f)
+legend(<span class="string">'a=1'</span>, <span class="string">'a=2'</span>, <span class="string">'a=3'</span>, <span class="string">'a=4'</span>)
+</pre><p><img vspace="5" hspace="5" src="img/gammafactory_01.png" alt=""> </p><h2><tt>name</tt><a id="2"></a></h2><p>See <a href="doc_distribution_common.html#1">distribution structure common members</a>.</p><h2><tt>M</tt><a id="4"></a></h2><p>See <a href="doc_distribution_common.html#2">distribution structure common members</a>.</p><h2><tt>dim</tt><a id="5"></a></h2><p>See <a href="doc_distribution_common.html#3">distribution structure common members</a>.</p><h2><tt>datadim</tt><a id="6"></a></h2><p>See <a href="doc_distribution_common.html#4">distribution structure common members</a>.</p><h2><tt>ll</tt><a id="8"></a></h2><p>See <a href="doc_distribution_common.html#5">distribution structure common members</a>.</p><h2><tt>llvec</tt><a id="9"></a></h2><p>See <a href="doc_distribution_common.html#6">distribution structure common members</a>.</p><h2><tt>llgrad</tt><a id="10"></a></h2><p>See <a href="doc_distribution_common.html#7">distribution structure common members</a>.</p><h2><tt>llgraddata</tt><a id="11"></a></h2><p>See <a href="doc_distribution_common.html#8">distribution structure common members</a>.</p><h2><tt>cdf</tt><a id="12"></a></h2><p>See <a href="doc_distribution_common.html#9">distribution structure common members</a>.</p><h2><tt>pdf</tt><a id="13"></a></h2><p>See <a href="doc_distribution_common.html#10">distribution structure common members</a>.</p><h2><tt>sample</tt><a id="14"></a></h2><p>See <a href="doc_distribution_common.html#11">distribution structure common members</a>.</p><h2><tt>randparam</tt><a id="15"></a></h2><p>See <a href="doc_distribution_common.html#12">distribution structure common members</a>.</p><h2><tt>init</tt><a id="16"></a></h2><p>See <a href="doc_distribution_common.html#13">distribution structure common members</a>.</p><h2><tt>estimatedefault</tt><a id="17"></a></h2><p>Default estimation function for gamma distribution.</p><p><b>Syntax</b></p><pre class="language-matlab">theta = D.estimatedefault(data)
+theta = D.estimatedefault(data, options)
+[theta, D] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info, options] = D.estimatedefault(<span class="keyword">...</span><span class="comment">)</span>
+</pre><h2><tt>penalizerparam</tt><a id="18"></a></h2><p>See <a href="doc_distribution_common.html#15">distribution structure common members</a>.</p><p><b>Penalizer Info</b></p><p>The default penalizer is like having a exponential distribution prior on on parameter (a) and inversegamma on (a*b) as explained in the paper: Wiper et al. "Mixtures of Gamma Distributions with application"</p><p>The exponential distribution has the following density:</p><p><img src="gammafactory_eq35785.png" alt="$$ f(x) \propto \lambda \exp(-\lambda x) $$"></p><p>The inverse-gamma distribution has the following density:</p><p><img src="gammafactory_eq12096.png" alt="$$ f(x) \propto x^{-\alpha-1} \exp( -\beta / x ) $$"></p><h2><tt>penalizercost</tt><a id="19"></a></h2><p>See <a href="doc_distribution_common.html#16">distribution structure common members</a>.</p><h2><tt>penalizergrad</tt><a id="20"></a></h2><p>See <a href="doc_distribution_common.html#17">distribution structure common members</a>.</p><h2><tt>sumparam</tt><a id="21"></a></h2><p>See <a href="doc_distribution_common.html#18">distribution structure common members</a>.</p><h2><tt>scaleparam</tt><a id="22"></a></h2><p>See <a href="doc_distribution_common.html#19">distribution structure common members</a>.</p><h2><tt>sumgrad</tt><a id="23"></a></h2><p>See <a href="doc_distribution_common.html#20">distribution structure common members</a>.</p><h2><tt>scalegrad</tt><a id="24"></a></h2><p>See <a href="doc_distribution_common.html#21">distribution structure common members</a>.</p><h2><tt>entropy</tt><a id="25"></a></h2><p>See <a href="doc_distribution_common.html#22">distribution structure common members</a>.</p><h2><tt>kl</tt><a id="26"></a></h2><p>See <a href="doc_distribution_common.html#23">distribution structure common members</a>.</p><h2><tt>AICc</tt><a id="27"></a></h2><p>See <a href="doc_distribution_common.html#24">distribution structure common members</a>.</p><h2><tt>BIC</tt><a id="28"></a></h2><p>See <a href="doc_distribution_common.html#25">distribution structure common members</a>.</p><h2><tt>display</tt><a id="29"></a></h2><p>See <a href="doc_distribution_common.html#26">distribution structure common members</a>.</p><h2><tt>fixate</tt><a id="30"></a></h2><p>Make some parameters fixed</p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.fixate(paramName, paramValue, <span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>newD = D.fixate(paramName, paramValue, ...)</tt> returns the new gamma distribution <tt>newD</tt> where the specified parameters are fixed so that they won't change in estimation. <tt>paramName</tt> is the name of the parameter ('a' or 'b') and <tt>paramValue</tt> is its desired fixed value.</p><p><b>Example</b></p><pre class="language-matlab">D = gammafactory();
+D = D.fixate(<span class="string">'a'</span>, 2);
+</pre><h2><tt>unfix</tt><a id="31"></a></h2><p>Undo <tt>fixate</tt></p><p><b>Syntax</b></p><pre class="language-matlab">newD = D.unfix(paramName, <span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p><tt>newD = D.unfix(paramName, ...)</tt> where <tt>D</tt> is a gamma distribution with fixed parameters, returns the new gamma distribution <tt>newD</tt> where the specified parameters are unfixed. <tt>paramName</tt> is the name of the parameter ('a' or 'b').</p><p><b>Example</b></p><pre class="language-matlab">D = gammafactory();
+D = D.fixate(<span class="string">'a'</span>, 2, <span class="string">'b'</span>, 1);
+D = D.unfix(<span class="string">'a'</span>);
+</pre><h2><tt>fullparam</tt><a id="32"></a></h2><p>Get the full parameter structure, given the variable parameter structure</p><p><b>Syntax</b></p><pre class="language-matlab">fulltheta = D.fullparam(theta)
+</pre><p><b>Description</b></p><p><tt>fulltheta = D.fullparam(theta)</tt> where <tt>D</tt> is a gamma distribution with fixed parameters, returns the full parameters of the gamma distribution including the fixed parameters. <tt>theta</tt> is a parameter structure for the distribution <tt>D</tt> (i.e. excluding the fixed parameters).</p><p><b>Example</b></p><pre class="language-matlab">D = gammafactory();
+D = D.fixate(<span class="string">'a'</span>, 2);
+theta = struct(<span class="string">'b'</span>, 1);
+fulltheta = D.fullparam(theta)
+</pre><pre>fulltheta =</pre><pre>    b: 1
+    a: 2</pre></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>gammafactory</tt></a></li><li><a class="list-group-item" href="#2"><tt>name</tt></a></li><li><a class="list-group-item" href="#4"><tt>M</tt></a></li><li><a class="list-group-item" href="#5"><tt>dim</tt></a></li><li><a class="list-group-item" href="#6"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#8"><tt>ll</tt></a></li><li><a class="list-group-item" href="#9"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#10"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#11"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#12"><tt>cdf</tt></a></li><li><a class="list-group-item" href="#13"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#14"><tt>sample</tt></a></li><li><a class="list-group-item" href="#15"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#16"><tt>init</tt></a></li><li><a class="list-group-item" href="#17"><tt>estimatedefault</tt></a></li><li><a class="list-group-item" href="#18"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#19"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#20"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#21"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#22"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#23"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#24"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#25"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#26"><tt>kl</tt></a></li><li><a class="list-group-item" href="#27"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#28"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#29"><tt>display</tt></a></li><li><a class="list-group-item" href="#30"><tt>fixate</tt></a></li><li><a class="list-group-item" href="#31"><tt>unfix</tt></a></li><li><a class="list-group-item" href="#32"><tt>fullparam</tt></a></li></ul></div></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>

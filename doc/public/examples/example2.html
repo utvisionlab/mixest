@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/examples/example2.html">
+
+    <title>Example 2 | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+              <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">Example 2
+                </h1>
+                <ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//examples/index.html">examples</a></li>
+			
+		
+	
+		
+			
+				<li class="active">example2</li>
+			
+		
+	
+</ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+                    <div id="main-content" class="col-md-9"><!--introduction--><!--/introduction--><p>This example uses a mixture of multinomial logistic experts to classify Fisher's iris data.</p><pre class="codeinput"><span class="keyword">function</span> example2
+
+clc
+clear
+<span class="comment">%close all</span>
+
+load <span class="string">data_iris</span>
+
+<span class="comment">% random permute the iris data</span>
+index = randperm(150);
+<span class="comment">% load rndprm150</span>
+data = data(:, index);
+
+<span class="comment">% Use 120 data for training</span>
+data_train = data(:, 1:120);
+data_test = data(:, 121:150);
+datadim = size(data_train,1) - 1;
+num = max(data(end,:),[], 2);
+
+<span class="comment">% create a mixture of multivariate logit</span>
+nummix = 3; <span class="comment">% number of components in gate</span>
+E = mnlfactory(datadim, num); <span class="comment">% expert</span>
+G = softmaxfactory(nummix, datadim); <span class="comment">% gate</span>
+D = moefactory(G, E);
+<span class="comment">%D = E;</span>
+<span class="comment">% figure('units', 'normalized', 'outerposition', [0 0 1 1])</span>
+
+<span class="comment">% plotting options</span>
+options.plotcost = true;
+
+
+<span class="comment">% main options</span>
+options.verbosity = 2;
+options.solver = <span class="string">'lbfgs'</span>;
+options.tolcostdiff = 1e-6;
+options.crossval = true;
+options.minibatch.size = 10;
+options.maxiter = 200;
+options.minibatch.discardhistory = false;
+options.crossval.toliter = 100;
+
+<span class="comment">% perform estimation</span>
+theta = D.estimate(data_train, options);
+
+<span class="comment">% perform prediction</span>
+data_pred = D.predict(theta, data_test);
+label = data_test(end,:)
+data_pred
+disp([<span class="string">'percentage of correct classification : '</span> <span class="keyword">...</span>
+    num2str(sum((label-data_pred)==0) * 100 /30)]);
+</pre></div><div id="sidebar" class="col-md-3"></div>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+              <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+        <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>
