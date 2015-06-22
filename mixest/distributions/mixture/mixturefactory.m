@@ -221,7 +221,7 @@ function D = mixturefactory(ComponentD, num)
         cacheValid = true;
     end
 
-    function hX = calc_cache(data)
+    function hX = calc_cache(data, datapatchsize)
     % calculate ll-cache for given data (used if cache is not filled)
     %
     % Note: (numfixed, fixedD, fixedtheta) must be set before calling this
@@ -235,8 +235,7 @@ function D = mixturefactory(ComponentD, num)
         end
         
         data.weight = [];
-        data.index = []; % calculate the cache on all data  %TODO patching
-        hX = zeros(numfixed, data.size);
+        %data.index = []; % calculate the cache on all data  %TODO patching
         
         if isinf(datapatchsize)
             datapatchsize = data.size;
@@ -248,10 +247,10 @@ function D = mixturefactory(ComponentD, num)
             
             bind = 1 + (k2-1)*datapatchsize;
             eind = min(k2*datapatchsize, data.size);
-            
+            data.index = bind:eind; % done with patching
             for k = 1:numfixed
-                hX(k,bind:einf) = log(fixedtheta.p(k)) + ...
-                    fixedD{k}.llvec(fixedtheta.D{k}, data(:,bind:eind));
+                hX(k,bind:eind) = log(fixedtheta.p(k)) + ...
+                    fixedD{k}.llvec(fixedtheta.D{k}, data);
             end 
             
         end
