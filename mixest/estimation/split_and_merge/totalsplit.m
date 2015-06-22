@@ -157,7 +157,7 @@ function [theta, D, info, options] = totalsplit(data, target_num, options)
     [theta, D, info] = D.estimate(data, opt_full);
     
     % initializations
-    cost = calc_cost(D, theta, data, options.sm.costtype);
+    cost = calc_cost(D, theta, data, options.sm.costtype, options);
     impvec = Inf; % vector of improvements achieved by the split that has produced each mixture component
     
     % First Loop : Splitting part
@@ -189,7 +189,7 @@ function [theta, D, info, options] = totalsplit(data, target_num, options)
         [newtheta, newD, info] = newD.estimatepartial(idxSplitted, newtheta, data, opt);
         
         % calculate the cost improvement
-        newcost = calc_cost(newD, newtheta, data, options.sm.costtype);
+        newcost = calc_cost(newD, newtheta, data, options.sm.costtype, options);
         costdiff = cost - newcost;
         
         if costdiff < options.sm.tolcostdiff
@@ -263,15 +263,20 @@ end
 
 
 
-function cost = calc_cost(D, theta, data, cost_type)
+function cost = calc_cost(D, theta, data, cost_type, options)
 % Calculates the value of the cost
-
+    data = mxe_readdata(data);
     switch cost_type
         case 1
-            cost = - D.ll(theta, data) + D.AICmc(theta, data);
+            cost = mxe_costgrad(D, theta, data, options) + ...
+                D.BIC(theta, data) / 10 / data.size;
+            %cost = - D.ll(theta, data) + D.AICmc(theta, data);
             
         case 2
-            cost = - D.ll(theta, data) + D.dim()/10;
+            cost = mxe_costgrad(D, theta, data, options) + ...
+                D.dim() / 10 / data.size;
+            % ll may have memory problem!
+            %cost = - D.ll(theta, data) + D.dim()/10;
             
     end
 end

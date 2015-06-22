@@ -108,7 +108,9 @@ function D = mixturefactory(ComponentD, num)
             hXcache = fixing.hXcache;
             cacheValid = true;
         end
-        if isfield(fixing, 'data')
+        if isfield(fixing, 'data') && isfield(fixing, 'datapatchsize')
+            fill_cache(fixing.data, fixing.datapatchsize);
+        elseif isfield(fixing, 'data')
             fill_cache(fixing.data);
         end
         
@@ -206,13 +208,16 @@ function D = mixturefactory(ComponentD, num)
 
 %%
 
-    function fill_cache(all_data)
+    function fill_cache(all_data, datapatchsize)
     % caches ll for fixed components on all data (including
     % cross-validation data, other patches, etc).
     %
     % Note: (numfixed, fixedD, fixedtheta) must be set before calling this
-    
-        hXcache = calc_cache(all_data);
+        
+        if nargin < 2
+            datapatchsize = inf;
+        end
+        hXcache = calc_cache(all_data, datapatchsize);
         cacheValid = true;
     end
 
@@ -231,10 +236,25 @@ function D = mixturefactory(ComponentD, num)
         
         data.weight = [];
         data.index = []; % calculate the cache on all data  %TODO patching
-        for k = 1:numfixed
-            hX(k,:) = log(fixedtheta.p(k)) + fixedD{k}.llvec(fixedtheta.D{k}, data);
+        hX = zeros(numfixed, data.size);
+        
+        if isinf(datapatchsize)
+            datapatchsize = data.size;
         end
-
+        
+        numk2 = ceil(data.size / datapatchsize);
+        
+        for k2 = 1:numk2
+            
+            bind = 1 + (k2-1)*datapatchsize;
+            eind = min(k2*datapatchsize, data.size);
+            
+            for k = 1:numfixed
+                hX(k,bind:einf) = log(fixedtheta.p(k)) + ...
+                    fixedD{k}.llvec(fixedtheta.D{k}, data(:,bind:eind));
+            end 
+            
+        end
         % to minimize memory use, we sum up the fixed lls into one row.
         % (note: we can safely remove this line)
         hX = logsumexp(hX, 1);
@@ -661,7 +681,7 @@ function D = mixturefactory(ComponentD, num)
 %
 
     D.fixate = @fixate;
-    function [newD, theta, idxFixed, idxMap] = fixate(idx, theta, data)
+    function [newD, theta, idxFixed, idxMap] = fixate(idx, theta, data, datapatchsize)
 
         % validation
         if num == 0
@@ -737,6 +757,9 @@ function D = mixturefactory(ComponentD, num)
         Afixing.fixedtheta = newFixedTheta;
         if nargin > 2
             Afixing.data = data;
+        end
+        if nargin > 3
+            Afixing.datapatchsize = datapatchsize;
         end
         
         % construct the new distribution
@@ -1529,7 +1552,7 @@ function D = mixturefactory(ComponentD, num)
 
         % make the other components fixed
         invidx = invertindex(idx);
-        [newD, theta0, idxfixed] = fixate(invidx, theta, data);
+        [newD, theta0, idxfixed] = fixate(invidx, theta, data, options.datapatchsize);
         
         % use the given theta as the initial point for estimation
         options.theta0 = theta0;
