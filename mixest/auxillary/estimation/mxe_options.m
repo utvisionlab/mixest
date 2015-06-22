@@ -85,7 +85,11 @@ function options = mxe_options(options, extra_defaults)
         options = default_options;
     else
         % theta0 should not become lower case
-        theta0 = options.theta0;
+        if isfield(options, 'theta0')
+            theta0 = options.theta0;
+        else
+            theta0 = [];
+        end
         options = mxe_setfields(default_options, options);
         options.theta0 = theta0;
     end

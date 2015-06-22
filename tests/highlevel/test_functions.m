@@ -12,7 +12,7 @@ else
 end
 %figure(5), plot(data(1,:),data(2,:),'.');
 
-if true
+if isfield(D, 'penalizercost')
     % Checking penalizer
     disp('Checking penalizer');
     Pparam = D.penalizerparam(data);
@@ -28,7 +28,7 @@ if false
     figure(1), checkgradient(problem)
 end
 
-if false
+if isfield(D, 'llgraddata')
     % Checking gradient with respect to data
     disp('Checking ll gradient w.r.t data');
     problem.M = euclideanfactory(size(data,1));
@@ -36,7 +36,7 @@ if false
     figure(2),checkgradient(problem)
 end
 
-if false
+if isfield(D, 'llgrad')
     % Checking llgrad
     disp('Checking ll gradient using egrad2rgrad');
     problem.M = D.M;
@@ -44,25 +44,30 @@ if false
     figure(3),checkgradient(problem)
 end
 
-if true
+if isfield(D, 'penalizercost') && isfield(D, 'llgrad')
     % Checking llgrad
     disp('Checking ll plus pen gradient using egrad2rgrad');
     problem.M = D.M;
     problem.costgrad = @(x)costgradupen(D,x,data,Pparam);
     figure(5),checkgradient(problem)
 end
-% Checking weighted llgrad
-disp('Checking weighted ll gradient using egrad2rgrad');
-problem.M = D.M;
-problem.costgrad = @(x)costgrad(D,x,struct('data',data,'weight',rand(1,nrs)));
-figure(4),checkgradient(problem)
+
+if isfield(D, 'llgrad')
+    % Checking weighted llgrad
+    disp('Checking weighted ll gradient using egrad2rgrad');
+    problem.M = D.M;
+    weight = rand(1,nrs);
+    problem.costgrad = @(x)costgrad(D,x,struct('data',data,'weight',weight));
+    figure(4),checkgradient(problem)
+end
 
 % setting the optimization procedure to lbfgs
 options.verbosity = 2;
 options.solver = 'lbfgs';
 options.tolcost = -Inf;
 options.tolcostdiff = 1e-4;
-options.penalize = true;
+options.penalize = false;
+%options.datapatchsize = 20000;
 thetaO = D.estimate(data, options);
 
 if false
