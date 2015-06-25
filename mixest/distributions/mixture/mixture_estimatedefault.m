@@ -86,7 +86,7 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
     %ll_diff = 0;
 
     % E-step: calculating the hX parameters and Log-likelihood
-    [hX, storeW] = D.weighting(theta, dataTrain);
+    [hX, storeW] = D.weighting(theta, dataTrain, struct, options.datapatchsize);
     ll = mean(storeW.llik);
     if options.penalize
         costPen = D.penalizercost(theta, options.penalizertheta, storeW);
@@ -182,7 +182,7 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
         end
         
         % E-step: Simultaneous likelihood and weight calculation
-        [hX, storeW] = D.weighting(theta, dataTrain);
+        [hX, storeW] = D.weighting(theta, dataTrain, struct, options.datapatchsize);
         ll = mean(storeW.llik);
         %TODO
         if options.penalize

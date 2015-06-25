@@ -45,7 +45,7 @@ function [idx1, idx2] = mixture_mergecandidates(D, theta, data, options, n)
 
         case 'overlap'
             % Find using posterior inner product (distribution overlaps)
-            mat = post_inner_prod(D, theta, data);
+            mat = post_inner_prod(D, theta, data, options.datapatchsize);
 
         case 'rand'
             % Random Merge
@@ -61,10 +61,10 @@ function [idx1, idx2] = mixture_mergecandidates(D, theta, data, options, n)
     [idx1, idx2] = ind2sub([num,num], idx);
 end
 
-function innerprod = post_inner_prod(D, theta, data)
+function innerprod = post_inner_prod(D, theta, data, datapatchsize)
 % This function implements posterior inner product
 
-    h = D.weighting(theta, data);
+    h = D.weighting(theta, data, struct, datapatchsize);
 
     num = D.num();
     innerprod = zeros(num);

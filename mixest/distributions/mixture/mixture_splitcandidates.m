@@ -33,12 +33,12 @@ function idx = mixture_splitcandidates(D, theta, data, options, n)
         case 'kl'
             % Find the one with maximum kl divergence between
             % model distribution and empirical distribution
-            h = loc_kl(D, theta, data);
+            h = loc_kl(D, theta, data, options.datapatchsize);
             flagmax = true;
 
         case 'mll'
             % Find the one with minimum mean local likelihood
-            h = mean_loc_ll(D, theta, data);
+            h = mean_loc_ll(D, theta, data, options.datapatchsize);
             flagmax = false;
 
         case 'entropy'
@@ -71,7 +71,7 @@ function idx = mixture_splitcandidates(D, theta, data, options, n)
 end
 
 
-function h = loc_kl(D, theta, data)
+function h = loc_kl(D, theta, data, datapatchsize)
 % Using local kl divergence between distribution and empirical distribution
 % used for splitting
 
@@ -88,12 +88,26 @@ function h = loc_kl(D, theta, data)
     hll = zeros(D.num(), N);
     hllnl = zeros(D.num(), N);
 
-    % Calculate the log-likelihood of data goes to different clusters
-    for k = 1:D.num()
-        Dk = D.component(k);
-        hllnl(k,:) = Dk.llvec(theta.D{k}, data);
-        hll(k,:) = log(theta.p(k)) + hllnl(k,:);
+    if isinf(datapatchsize)
+        datapatchsize = N;
     end
+    
+    numk2 = ceil(N / datapatchsize);
+            
+    % Calculate the log-likelihood of data goes to different clusters
+    for k2 = 1:numk2
+        bind = 1 + (k2-1)*datapatchsize;
+        eind = min(k2*datapatchsize, N);
+        dataindex = bind:eind; % done with patching
+        
+        for k = 1:D.num()
+            Dk = D.component(k);
+            hllnl(k,dataindex) = Dk.llvec(theta.D{k}, data(:,dataindex));
+            hll(k,dataindex) = log(theta.p(k)) + hllnl(k,:);
+        end
+        
+    end
+            
 
     % Based on log-likelihoods calculate the total log-likelihood and weights
     h_sumX = logsumexp(hll,1);
@@ -117,7 +131,7 @@ function h = loc_kl(D, theta, data)
 end
 
 
-function h = mean_loc_ll(D, theta, data)
+function h = mean_loc_ll(D, theta, data, datapatchsize)
 % calculating mean local likelihood necessary for splitting
 
     data = mxe_readdata(data);
@@ -132,10 +146,22 @@ function h = mean_loc_ll(D, theta, data)
     % Initialize different variables
     hll = zeros(D.num(), N);
 
+    if isinf(datapatchsize)
+        datapatchsize = N;
+    end
+    
+    numk2 = ceil(N / datapatchsize);
+            
     % Calculate the log-likelihood of data goes to different clusters
-    for k = 1:D.num()
-        Dk = D.component(k);
-        hll(k,:) = log(theta.p(k)) + Dk.ll(theta.D{k}, data, 'vec');
+    for k2 = 1:numk2
+        bind = 1 + (k2-1)*datapatchsize;
+        eind = min(k2*datapatchsize, N);
+        dataindex = bind:eind; % done with patching
+        for k = 1:D.num()
+            Dk = D.component(k);
+            hll(k,dataindex) = log(theta.p(k)) + ...
+                Dk.ll(theta.D{k}, data(:,dataindex), 'vec');
+        end  
     end
 
     % Based on log-likelihoods calculate the total log-likelihood and wrights

@@ -1082,41 +1082,67 @@ function D = mixturefactory(ComponentD, num)
 
 %%
 
-    function store = weighting_intermediate_params(theta, data, store)
+    function store = weighting_intermediate_params(theta, data, store, datapatchsize)
     % calculate intermediate parameters for weighting
         
         if ~isfield(store, 'componentStores')
             store.componentStores = cell(num,1);
         end
         
+        if nargin < 4
+            datapatchsize = inf;
+        end
+        
         if ~isfield(store, 'hX') || ~isfield(store, 'llik')
             data = mxe_readdata(data, false);
             index = data.index;
-            n = data.size;
-            datamat = data.data;
             
-            % Initialize different variables
-            hX = zeros(num, n);
-            % Calculate the log-likelihood of data goes to different clusters
-            for k = 1:num
-                if ~isstruct(store.componentStores{k})
-                    store.componentStores{k} = struct;
-                end
-                [llvec, store.componentStores{k}] = ...
-                    Components{k}.llvec(...
-                    theta.D{k}, struct('data',datamat, 'weight',[], 'index',index), ...
-                    store.componentStores{k});
-                hX(k,:) = log(theta.p(k)) + llvec;
-            end
             % add fixed lls to hX before calculating total ll
             if numfixed > 0
                 if cacheValid
                     hX_fixed = hXcache(:,index);
                 else
-                    hX_fixed = calc_cache(data);
+                    hX_fixed = calc_cache(data, datapatchsize);
                 end
+            end
+            
+            n = data.size;
+            data.weight = [];
+            
+            % Initialize different variables
+            hX = zeros(num, n);
+            
+            if isinf(datapatchsize)
+                datapatchsize = n;
+            end
+            
+            numk2 = ceil(n / datapatchsize);
+            
+           % Calculate the log-likelihood of data goes to different clusters
+            for k2 = 1:numk2
+                
+                bind = 1 + (k2-1)*datapatchsize;
+                eind = min(k2*datapatchsize, data.size);
+                data.index = index(bind:eind); % done with patching
+                for k = 1:num
+                    if ~isstruct(store.componentStores{k})
+                        store.componentStores{k} = struct;
+                    end
+                    [llvec, store.componentStores{k}] = ...
+                        Components{k}.llvec(...
+                        theta.D{k}, data, store.componentStores{k});
+                    hX(k,bind:eind) = log(theta.p(k)) + llvec;
+                end
+                
+            end
+            
+           
+            
+            % add fixed lls to hX before calculating total ll
+            if numfixed > 0
                 hX = vertcat(hX, log(theta.p(num+1)) + hX_fixed);
             end
+            
             % hX is a (num-by-n) matrix where each column of hX contains
             % log(p_k*D_k) for a data point for every component (1<k<num).
             store.hX = hX;
@@ -1137,13 +1163,17 @@ function D = mixturefactory(ComponentD, num)
 %
 
     D.weighting = @weighting;
-    function [component_weights, store] = weighting(theta, data, store)
+    function [component_weights, store] = weighting(theta, data, store, datapatchsize)
         
         if nargin < 3
             store = struct;
         end
         
-        store = weighting_intermediate_params(theta, data, store);
+        if nargin < 4
+            datapatchsize = inf;
+        end
+        
+        store = weighting_intermediate_params(theta, data, store, datapatchsize);
         hX = store.hX;
         llik = store.llik;
         
@@ -1158,7 +1188,7 @@ function D = mixturefactory(ComponentD, num)
         
         if low_memory
             store = rmfield(store,'hX');
-            store = rmfield(store,'llik');
+            %store = rmfield(store,'llik');
         end
     end
 
