@@ -141,7 +141,7 @@ function  D = factorialfactory(ComponentD, num)
 %% |datadim|
 % See <doc_distribution_common.html#4 distribution structure common members>.
 
-    D.datadim = @() Components{1}.datadim(); % data space dimensions
+    D.datadim = @() num; % data space dimensions
 
 %%
 
