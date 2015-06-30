@@ -241,6 +241,10 @@ function D = gaussianizationfactory(LayerD, num)
         % log-likelihood of Gaussian and sum over them
 
         store = struct;        
+        if nargin < 3
+            store = struct;
+        end
+        store.ll = zeros(1, num);
         data = mxe_readdata(data);
         ll_gauss = 0;
         ll = 0;
@@ -261,6 +265,8 @@ function D = gaussianizationfactory(LayerD, num)
             end
             % compute the likelihood of the data using Gaussian assumption
             ll_gauss = Gauss.ll(thetaG, data);
+            % Saving ll of different layers
+            store.ll(k) = ll;
         end
         
     end
