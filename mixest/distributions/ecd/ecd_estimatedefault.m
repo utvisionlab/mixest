@@ -1,8 +1,8 @@
-%% |mixture_estimatedefault|
+%% |ecd_estimatedefault|
 % *Note:* This is a private function.
 %
-% Default estimation function for the mixture distribution. Implements the
-% Expectation Maximization (EM) algorithm.
+% Default estimation function for ecd distribution. Implements alternative
+% coordinate descent (between Radial and Sigma).
 %
 
 % Copyright 2015 Reshad Hosseini and Mohamadreza Mash'al
@@ -15,7 +15,7 @@
 % Change log: 
 %
 
-function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
+function [theta, D, info, options] = ecd_estimatedefault(D, data, options)
 
     data = mxe_readdata(data, false);
     weight = data.weight;
@@ -81,18 +81,28 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
     theta = options.theta0;
 
     dataTrain = struct('data',datamat, 'weight',weight, 'index',idxTrain);
-    %ll = llfun(theta, dataTrain);
-    %ll_old = ll;
-    %ll_diff = 0;
 
-    % E-step: calculating the hX parameters and Log-likelihood
-    [hX, storeW] = D.weighting(theta, dataTrain, struct, options.datapatchsize);
-    ll = mean(storeW.llik);
-    if options.penalize
-        costPen = D.penalizercost(theta, options.penalizertheta, storeW);
-        ll = ll + costPen/ length(storeW.llik);
-        %pause
+    dataRadial = struct('data',zeros(1,size(datamat,2)), ...
+        'weight',weight, 'index',idxTrain);
+    radialD = D.radialD();
+    
+    % Computing Square Radial and ll
+    [u, logdetR, radialDllvec]  = compute_radial(theta, datamat);
+    llvec = - (0.5*datadim)*log(pi) - logdetR + gammaln(0.5*datadim) ...
+        + radialDllvec + (1-0.5*datadim)*log(u);
+    if ~isempty(weight)
+        ll = mean(llvec(idxTrain) .* weight(idxTrain), 2);
+    else
+        ll = mean(llvec(idxTrain), 2);
     end
+    %ll
+    
+    %sum(D.llvec(theta, dataTrain))/nTrain
+    if options.penalize
+        costPen = D.penalizercost(theta, options.penalizertheta);
+        ll = ll + costPen / length(llvec);
+    end
+    
     ll_old = ll;   
     ll_diff = 0; 
     
@@ -114,7 +124,8 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
         timetic = tic();
         
         % stopping criterion
-        [stop, reason] = mxe_stoppingcriterion(D, theta, options, info, iter+1, first, struct('cv',cv, 'vis',vis));
+        [stop, reason] = mxe_stoppingcriterion(D, theta, options, info, ...
+            iter+1, first, struct('cv',cv, 'vis',vis));
         if stop
             if options.verbosity >= 1
                 fprintf([reason '\n']);
@@ -156,44 +167,46 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
             end
         end
         
-        % M-step: Update the covariance matrix
-        p = sum(hX, 2);
-        p = p / sum(p);
-        theta.p = p;
-        for k = 1:D.num()
-            % Inner mixture should run quickly     %TODO
-            comp_options = options; 
-            comp_options.solver = 'default';
-            comp_options.verbosity = 0;
-            comp_options.maxiter = 1;
-            comp_options.miniter = 0;
-            comp_options.previnfo = [];
-            comp_options.crossval.enabled = false;
-            Component = D.component(k);
-            if ~isfield(Component,'estimatedefault');
-                comp_options.solver = 'cg';
-                comp_options.maxiter = 10;
+        % Update the parameters
+        comp_options = options;
+        comp_options.solver = 'default';
+        comp_options.verbosity = 0;
+        comp_options.miniter = 2;
+        comp_options.maxiter = 1;
+        comp_options.crossval.enabled = false;
+        if ~isfield(radialD,'estimatedefault');
+            comp_options.solver = 'cg';
+            comp_options.maxiter = 10;
+        end
+        if options.penalize
+            comp_options.penalizertheta = options.penalizertheta.radialD;
+        end
+        comp_options.theta0 = theta.radialD;
+        dataRadial.data = u;
+        thetaRadial = radialD.estimatedefault(dataRadial, comp_options);
+        comp_options.maxiter = 1;
+        comp_options.theta0 = theta;
+        if strcmp (radialD.name(), 'gamma')
+            theta = ecd_eg_estimatedefault(D, thetaRadial, dataTrain, comp_options);
+        end
+        theta.radialD = thetaRadial;
+        if iter < options.maxiter - 1
+            % Computing Square Radial and ll
+            [u, logdetR, radialDllvec]  = compute_radial(theta, datamat);
+            llvec = - (0.5*datadim)*log(pi) - logdetR + gammaln(0.5*datadim) ...
+                + radialDllvec + (1-0.5*datadim)*log(u);
+            if ~isempty(weight)
+                ll = mean(llvec(idxTrain) .* weight(idxTrain), 2);
+            else
+                ll = mean(llvec(idxTrain), 2);
             end
             if options.penalize
-                comp_options.penalizertheta = options.penalizertheta.D{k};
+                costPen = D.penalizercost(theta, options.penalizertheta);
+                ll = ll + costPen / length(llvec);
             end
-            %if iter>= 1
-            comp_options.theta0 = theta.D{k};
-            %end
-            theta.D{k} = Component.estimate(struct('data',datamat, 'weight',hX(k,:), 'index',idxTrain), comp_options);
         end
         
-        % E-step: Simultaneous likelihood and weight calculation
-        [hX, storeW] = D.weighting(theta, dataTrain, struct, options.datapatchsize);
-        ll = mean(storeW.llik);
-        %TODO
-        if options.penalize
-            costPen = D.penalizercost(theta, options.penalizertheta, storeW);
-            ll = ll + costPen / length(storeW.llik);
-            %pause
-        end
         ll_diff = ll - ll_old;
-        
         ll_old = ll;
         iter = iter + 1;
         stats = savestats();
@@ -234,4 +247,28 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
         sdata = mxe_readdata(data, false);
         cost = D.ll(theta, data) / sdata.size;
     end
+
+    function [u, logdetR, radialDllvec]  = compute_radial(theta, data)
+        data = mxe_readdata(data);
+        data = data.data;
+        datadim = size(data,1);
+        [R, p] = chol(theta.sigma); % C=R' R ( R upper trangular)
+        if p > 0
+            warning('matrix is not symmetric positive definite ...');
+            t = 1e-10;
+            while p > 0
+                theta.sigma = theta.sigma + t * eye(datadim);
+                [R, p] = chol(theta.sigma); %#ok<ASGLU>
+                t = t * 100;
+            end
+            R = chol(theta.sigma);
+        end
+        logdetR = sum(log(diag(R)));
+        Rinv = R \ eye(datadim); % Faster version of Rinv = inv_triu(R);
+        % u = X' C^-1 X
+        Rinvdata = (Rinv' * data);
+        u = sum(Rinvdata.^2, 1);
+        radialDllvec = radialD.llvec(theta.radialD, u);
+    end
 end
+            
