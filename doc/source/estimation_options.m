@@ -556,7 +556,7 @@ disp(mxe_htmltable(T))
 % structure of the new mixture after the split (containing the parameters
 % for an additional component). You should put the initialized parameter
 % values for the first splitted component at |newtheta.D{idx}| and for the
-% second in |newtheta.D{end}|. The component weights in |newtheta.p| should
+% second at |newtheta.D{end}|. The component weights in |newtheta.p| should
 % also be updated accordingly.
 %
 % * *|mergeInit|* (default |'default'|) : Initialization method for the
