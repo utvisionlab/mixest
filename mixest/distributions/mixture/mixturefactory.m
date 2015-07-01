@@ -1125,7 +1125,7 @@ function D = mixturefactory(ComponentD, num)
                 eind = min(k2*datapatchsize, data.size);
                 data.index = index(bind:eind); % done with patching
                 for k = 1:num
-                    if ~isstruct(store.componentStores{k})
+                    if ~isstruct(store.componentStores{k}) || numk2 > 1
                         store.componentStores{k} = struct;
                     end
                     [llvec, store.componentStores{k}] = ...
