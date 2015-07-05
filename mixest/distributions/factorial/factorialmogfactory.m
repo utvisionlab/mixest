@@ -89,7 +89,7 @@ function  D = factorialmogfactory(numCpt, num)
 
     D.dim = @dim; % parameter space dimensions
     function dim = dim()
-        dim = 2*numCpt*num + num*num;
+        dim = (3*numCpt-1)*num + (num-1)*num;
     end
 
 %% |datadim|

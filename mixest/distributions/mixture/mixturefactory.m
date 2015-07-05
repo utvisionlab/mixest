@@ -1069,7 +1069,7 @@ function D = mixturefactory(ComponentD, num)
 
     D.dim = @dim; % parameter space dimensions
     function dim = dim()
-        dim = nump; % component weights
+        dim = nump - 1; % component weights
         for k = 1:num
             dim = dim + Components{k}.dim(); % component parameters
         end
@@ -1214,10 +1214,10 @@ function D = mixturefactory(ComponentD, num)
             ll = sum(llik);
         end
         
-        if low_memory
+%        if low_memory
             store = rmfield(store,'hX');
             store = rmfield(store,'llik');
-        end
+      %  end
         
     end
 
