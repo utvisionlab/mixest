@@ -122,7 +122,7 @@ function D = ecdfactory(datadim, radialD, fixing)
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.
 
-    D.dim = @() datadim*(datadim+1)/2 + datadim + radialD.dim() - 1; % parameter space dimensions
+    D.dim = @() datadim*(datadim+1)/2 + radialD.dim() - 1; % parameter space dimensions
 
 %% |datadim|
 % See <doc_distribution_common.html#4 distribution structure common members>.
