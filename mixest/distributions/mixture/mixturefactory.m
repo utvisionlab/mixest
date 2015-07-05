@@ -1214,10 +1214,10 @@ function D = mixturefactory(ComponentD, num)
             ll = sum(llik);
         end
         
-%        if low_memory
+        if low_memory
             store = rmfield(store,'hX');
             store = rmfield(store,'llik');
-      %  end
+        end
         
     end
 
