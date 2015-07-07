@@ -155,9 +155,9 @@ assertEqual(idxMap(idxUnchanged), 2)
 
 
 function test_dim(s)
-assert(s.D.dim() == 15) % 5(num) * 2(D) + 5(p)
+assert(s.D.dim() == 14) % 5(num) * 2(D) + 4(p)
 D = s.D.fixate([4,5], s.theta);
-assert(D.dim() == 10) % 3(num) * 2(D) + 4(p)
+assert(D.dim() == 9) % 3(num) * 2(D) + 3(p)
 
 
 function test_datadim(s)

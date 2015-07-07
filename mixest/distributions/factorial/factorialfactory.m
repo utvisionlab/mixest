@@ -129,7 +129,7 @@ function  D = factorialfactory(ComponentD, num)
     D.dim = @dim; % parameter space dimensions
     function dim = dim()
         if homogeneous
-            dim = ComponentD.dim()*num + num*num;
+            dim = ComponentD.dim()*num + (num-1)*num;
         else
             dim = num*num; % component weights
             for k = 1:num %#ok<FXUP>
@@ -141,7 +141,7 @@ function  D = factorialfactory(ComponentD, num)
 %% |datadim|
 % See <doc_distribution_common.html#4 distribution structure common members>.
 
-    D.datadim = @() Components{1}.datadim(); % data space dimensions
+    D.datadim = @() num; % data space dimensions
 
 %%
 

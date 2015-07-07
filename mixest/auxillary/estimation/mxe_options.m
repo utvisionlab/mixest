@@ -84,7 +84,14 @@ function options = mxe_options(options, extra_defaults)
     if nargin < 1
         options = default_options;
     else
+        % theta0 should not become lower case
+        if isfield(options, 'theta0')
+            theta0 = options.theta0;
+        else
+            theta0 = [];
+        end
         options = mxe_setfields(default_options, options);
+        options.theta0 = theta0;
     end
     
     % convert the options to standard form

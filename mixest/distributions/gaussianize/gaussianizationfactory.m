@@ -232,13 +232,19 @@ function D = gaussianizationfactory(LayerD, num)
 % See <doc_distribution_common.html#5 distribution structure common members>.
 
     D.ll = @ll;
-    Gauss = mvnfactory(num);
-    thetaG.mu = zeros(num,1);
-    thetaG.sigma = eye(num);
+    datadim = D.datadim();
+    Gauss = mvnfactory(datadim);
+    thetaG.mu = zeros(datadim,1);
+    thetaG.sigma = eye(datadim);
     function [ll, store] = ll(theta, data, store)
         % layer by layer calculate difference between log-likelihood and
         % log-likelihood of Gaussian and sum over them
-        
+
+        store = struct;        
+        if nargin < 3
+            store = struct;
+        end
+        store.ll = zeros(1, num);
         data = mxe_readdata(data);
         ll_gauss = 0;
         ll = 0;
@@ -259,6 +265,8 @@ function D = gaussianizationfactory(LayerD, num)
             end
             % compute the likelihood of the data using Gaussian assumption
             ll_gauss = Gauss.ll(thetaG, data);
+            % Saving ll of different layers
+            store.ll(k) = ll;
         end
         
     end

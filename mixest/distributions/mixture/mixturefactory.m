@@ -108,7 +108,9 @@ function D = mixturefactory(ComponentD, num)
             hXcache = fixing.hXcache;
             cacheValid = true;
         end
-        if isfield(fixing, 'data')
+        if isfield(fixing, 'data') && isfield(fixing, 'datapatchsize')
+            fill_cache(fixing.data, fixing.datapatchsize);
+        elseif isfield(fixing, 'data')
             fill_cache(fixing.data);
         end
         
@@ -206,17 +208,20 @@ function D = mixturefactory(ComponentD, num)
 
 %%
 
-    function fill_cache(all_data)
+    function fill_cache(all_data, datapatchsize)
     % caches ll for fixed components on all data (including
     % cross-validation data, other patches, etc).
     %
     % Note: (numfixed, fixedD, fixedtheta) must be set before calling this
-    
-        hXcache = calc_cache(all_data);
+        
+        if nargin < 2
+            datapatchsize = inf;
+        end
+        hXcache = calc_cache(all_data, datapatchsize);
         cacheValid = true;
     end
 
-    function hX = calc_cache(data)
+    function hX = calc_cache(data, datapatchsize)
     % calculate ll-cache for given data (used if cache is not filled)
     %
     % Note: (numfixed, fixedD, fixedtheta) must be set before calling this
@@ -230,11 +235,25 @@ function D = mixturefactory(ComponentD, num)
         end
         
         data.weight = [];
-        data.index = []; % calculate the cache on all data  %TODO patching
-        for k = 1:numfixed
-            hX(k,:) = log(fixedtheta.p(k)) + fixedD{k}.llvec(fixedtheta.D{k}, data);
+        %data.index = []; % calculate the cache on all data  %TODO patching
+        
+        if isinf(datapatchsize)
+            datapatchsize = data.size;
         end
-
+        
+        numk2 = ceil(data.size / datapatchsize);
+        
+        for k2 = 1:numk2
+            
+            bind = 1 + (k2-1)*datapatchsize;
+            eind = min(k2*datapatchsize, data.size);
+            data.index = bind:eind; % done with patching
+            for k = 1:numfixed
+                hX(k,bind:eind) = log(fixedtheta.p(k)) + ...
+                    fixedD{k}.llvec(fixedtheta.D{k}, data);
+            end 
+            
+        end
         % to minimize memory use, we sum up the fixed lls into one row.
         % (note: we can safely remove this line)
         hX = logsumexp(hX, 1);
@@ -661,7 +680,7 @@ function D = mixturefactory(ComponentD, num)
 %
 
     D.fixate = @fixate;
-    function [newD, theta, idxFixed, idxMap] = fixate(idx, theta, data)
+    function [newD, theta, idxFixed, idxMap] = fixate(idx, theta, data, datapatchsize)
 
         % validation
         if num == 0
@@ -737,6 +756,9 @@ function D = mixturefactory(ComponentD, num)
         Afixing.fixedtheta = newFixedTheta;
         if nargin > 2
             Afixing.data = data;
+        end
+        if nargin > 3
+            Afixing.datapatchsize = datapatchsize;
         end
         
         % construct the new distribution
@@ -1047,7 +1069,7 @@ function D = mixturefactory(ComponentD, num)
 
     D.dim = @dim; % parameter space dimensions
     function dim = dim()
-        dim = nump; % component weights
+        dim = nump - 1; % component weights
         for k = 1:num
             dim = dim + Components{k}.dim(); % component parameters
         end
@@ -1060,41 +1082,67 @@ function D = mixturefactory(ComponentD, num)
 
 %%
 
-    function store = weighting_intermediate_params(theta, data, store)
+    function store = weighting_intermediate_params(theta, data, store, datapatchsize)
     % calculate intermediate parameters for weighting
         
         if ~isfield(store, 'componentStores')
             store.componentStores = cell(num,1);
         end
         
+        if nargin < 4
+            datapatchsize = inf;
+        end
+        
         if ~isfield(store, 'hX') || ~isfield(store, 'llik')
             data = mxe_readdata(data, false);
             index = data.index;
-            n = data.size;
-            datamat = data.data;
             
-            % Initialize different variables
-            hX = zeros(num, n);
-            % Calculate the log-likelihood of data goes to different clusters
-            for k = 1:num
-                if ~isstruct(store.componentStores{k})
-                    store.componentStores{k} = struct;
-                end
-                [llvec, store.componentStores{k}] = ...
-                    Components{k}.llvec(...
-                    theta.D{k}, struct('data',datamat, 'weight',[], 'index',index), ...
-                    store.componentStores{k});
-                hX(k,:) = log(theta.p(k)) + llvec;
-            end
             % add fixed lls to hX before calculating total ll
             if numfixed > 0
                 if cacheValid
                     hX_fixed = hXcache(:,index);
                 else
-                    hX_fixed = calc_cache(data);
+                    hX_fixed = calc_cache(data, datapatchsize);
                 end
+            end
+            
+            n = data.size;
+            data.weight = [];
+            
+            % Initialize different variables
+            hX = zeros(num, n);
+            
+            if isinf(datapatchsize)
+                datapatchsize = n;
+            end
+            
+            numk2 = ceil(n / datapatchsize);
+            
+           % Calculate the log-likelihood of data goes to different clusters
+            for k2 = 1:numk2
+                
+                bind = 1 + (k2-1)*datapatchsize;
+                eind = min(k2*datapatchsize, data.size);
+                data.index = index(bind:eind); % done with patching
+                for k = 1:num
+                    if ~isstruct(store.componentStores{k}) || numk2 > 1
+                        store.componentStores{k} = struct;
+                    end
+                    [llvec, store.componentStores{k}] = ...
+                        Components{k}.llvec(...
+                        theta.D{k}, data, store.componentStores{k});
+                    hX(k,bind:eind) = log(theta.p(k)) + llvec;
+                end
+                
+            end
+            
+           
+            
+            % add fixed lls to hX before calculating total ll
+            if numfixed > 0
                 hX = vertcat(hX, log(theta.p(num+1)) + hX_fixed);
             end
+            
             % hX is a (num-by-n) matrix where each column of hX contains
             % log(p_k*D_k) for a data point for every component (1<k<num).
             store.hX = hX;
@@ -1115,13 +1163,17 @@ function D = mixturefactory(ComponentD, num)
 %
 
     D.weighting = @weighting;
-    function [component_weights, store] = weighting(theta, data, store)
+    function [component_weights, store] = weighting(theta, data, store, datapatchsize)
         
         if nargin < 3
             store = struct;
         end
         
-        store = weighting_intermediate_params(theta, data, store);
+        if nargin < 4
+            datapatchsize = inf;
+        end
+        
+        store = weighting_intermediate_params(theta, data, store, datapatchsize);
         hX = store.hX;
         llik = store.llik;
         
@@ -1136,7 +1188,7 @@ function D = mixturefactory(ComponentD, num)
         
         if low_memory
             store = rmfield(store,'hX');
-            store = rmfield(store,'llik');
+            %store = rmfield(store,'llik');
         end
     end
 
@@ -1529,7 +1581,7 @@ function D = mixturefactory(ComponentD, num)
 
         % make the other components fixed
         invidx = invertindex(idx);
-        [newD, theta0, idxfixed] = fixate(invidx, theta, data);
+        [newD, theta0, idxfixed] = fixate(invidx, theta, data, options.datapatchsize);
         
         % use the given theta as the initial point for estimation
         options.theta0 = theta0;
