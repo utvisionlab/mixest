@@ -122,12 +122,17 @@ function D = ecdfactory(datadim, radialD, fixing)
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.
 
-    D.dim = @() datadim*(datadim+1) + radialD.dim(); % parameter space dimensions
+    D.dim = @() datadim*(datadim+1)/2 + radialD.dim() - 1; % parameter space dimensions
 
 %% |datadim|
 % See <doc_distribution_common.html#4 distribution structure common members>.
 
     D.datadim = @() datadim; % data space dimensions
+    
+%% |radialD|
+% Returning radial distribution
+
+    D.radialD = @() radialD;
 
 %%
 
@@ -405,8 +410,7 @@ function D = ecdfactory(datadim, radialD, fixing)
         Rinvdata = (Rinv' * data);
         u = sum(Rinvdata.^2, 1);
         if ~fixed_radialD
-            D = radialD.init(u);
-            theta.radialD = D;
+            theta.radialD = radialD.init(u);
         end
     end
 
@@ -444,27 +448,8 @@ function D = ecdfactory(datadim, radialD, fixing)
              [varargout{1:nargout}] = ecd_eg_estimatedefault(D, ...
                  thetamask.radialD, varargin{:}); 
          end
-         if ~fixed_sigma && ~fixed_radialD && strcmp (radialD.name(), 'gamma')
-              if nargin > 1
-                  options = varargin{2};
-                  theta0 = options.theta0;
-              else
-                  theta0 = [];
-              end
-              if isempty(theta0)
-                  theta0 = init(data);
-              end
-              store = struct;
-              store = ll_intermediate_params1(theta0, store);
-              store = ll_intermediate_params2(data, store);
-              fixed_u = store.u;
-              data = mxe_readdata(data, false);
-              data.data = fixed_u;
-              options.theta0 = theta0.radialD;
-              theta = radialD.estimatedefault(data, options);
-              [varargout{1:nargout}] = ecd_eg_estimatedefault(D, ...
-                  theta, varargin{:});
-              varargout{1}.radialD = theta;
+         if ~fixed_sigma && ~fixed_radialD 
+             [varargout{1:nargout}] = ecd_estimatedefault(D, varargin{:});
          end
      end
 

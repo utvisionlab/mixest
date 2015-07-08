@@ -97,6 +97,7 @@ function [theta, D, info, options] = smem(data, num, options)
     
     extra_options = struct(...
         'sm', struct(...
+            'costtype', 2, ...
             'maxcands', 5, ...
             'componentd', [] ... default is mvnfactory(datadim)
         ));
@@ -137,7 +138,7 @@ function [theta, D, info, options] = smem(data, num, options)
     D = mixturefactory(ComponentD, num);
     [theta, D, info] = D.estimate(data, opt_full);
     
-    cost_current = calc_cost(D, theta, data);
+    cost_current = calc_cost(D, theta, data, options.sm.costtype);
 
     iter = 0;
     while true
@@ -198,7 +199,7 @@ function [theta, D, info, options] = smem(data, num, options)
             [newtheta, newD, info] = newD.estimate(data, opt);
 
             % check improvement
-            cost_new = calc_cost(newD, newtheta, data);
+            cost_new = calc_cost(newD, newtheta, data, options.sm.costtype);
             if cost_new < cost_current
                 if options.verbosity >= 1
                     fprintf('\nCost improved :)\n')
@@ -235,10 +236,15 @@ end
 
 
 
-function cost = calc_cost(D, theta, data)
+function cost = calc_cost(D, theta, data, cost_type)
 % Calculates the value of the cost
+    switch cost_type
+        case 1
+            F = D.ll(theta, data) + D.BIC(data);
+        case 2
+            F = D.ll(theta, data) - D.dim()/100;
+    end
 
-    F = D.ll(theta, data) + D.BIC(data);
     cost = -F;
 end
 

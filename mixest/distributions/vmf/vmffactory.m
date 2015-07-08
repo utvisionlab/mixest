@@ -463,6 +463,10 @@ function D = vmffactory(datadim)
     
 %% |visualize|
 %
+% *Syntax*
+%
+%   handle_array = D.visualize(D, theta, vis_options)
+%
 
     D.visualize = @visualize;
     function [varargout] = visualize(varargin)

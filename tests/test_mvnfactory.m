@@ -22,7 +22,7 @@ s.data = [2.613001418638300,-5.776540583010944,1.956295719576942,-0.300776066917
 
 
 function test_dim(s)
-assert(s.D.dim() == 6)
+assert(s.D.dim() == 5)
 
 
 function test_datadim(s)
