@@ -31,7 +31,8 @@ Contact: [Reshad Hosseini](mailto:reshad.hosseini@ut.ac.ir) or [Mohamadreza Mash
    |--- manopt/           - manifold optimization toolbox by N. Boumal and B. Mishra
    |--- matlab-xunit/     - xUnit tests for Matlab
    
- </pre>
+</pre>
+
 ## HOW TO CITE ##
 
 If you are using this toolbox in your research please cite the following paper:
@@ -89,12 +90,14 @@ Using MixEst, you can fit arbitrary distributions (usually mixture models) to yo
 <section>
 <img src="http://visionlab.ut.ac.ir/mixest/docs/examples/img/example3.gif">
 </section>
+
 An example showing the toolbox fitting a mixture on von Mises-Fisher distributions.
 
 
 <section>
 <img src="http://visionlab.ut.ac.ir/mixest/docs/examples/img/example4.gif">
 </section>
+
 An example visualizing the estimation process of a modified version of the Competitive EM (CEM) algorithm on sample 2-D data.
 
 -------------------------------------------------------------------------------

@@ -21,7 +21,7 @@
 function check_grad(D, theta, data)
 
 if nargin < 3
-    nrd = 200000;
+    nrd = 10000;
     data = D.sample(theta, nrd);
 else
     data = mxe_readdata(data);
@@ -61,7 +61,8 @@ function [y, dy] = fun(D, theta, x, data)
 
 px = vec2obj(theta, x);
 if nargout>1
-    [y, dd] = D.ll(px, data);
+    [y, store] = D.ll(px, data);
+    dd = D.llgrad(px, data, store);
     dy = obj2vec(dd);
 else
     y = D.ll(px, data);
