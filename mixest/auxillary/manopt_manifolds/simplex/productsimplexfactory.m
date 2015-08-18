@@ -1,14 +1,14 @@
-%% |simplexfactory|
+%% |productsimplexfactory|
 % Returns a manifold struct to optimize over simplex with given dimension
 %
 % *Syntax*
 %
-%   M = simplexfactory(n)
+%   M = productsimplexfactory(n)
 %
 % *Description*
 %
-% |M = simplexfactory(n)| returns |M|, a structure describing the simplex
-% manifold of dimension |n|.
+% |M = simplexfactory(n, m)| returns |M|, a structure describing cartesian
+% product of |m| simplex manifolds of dimension |n|.
 %
 
 % Copyright 2015 Reshad Hosseini and Mohamadreza Mash'al
