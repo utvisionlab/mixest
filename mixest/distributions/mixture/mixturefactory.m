@@ -86,13 +86,11 @@ function D = mixturefactory(ComponentD, num)
 
     D.name = @() 'mixture';
     
-%% 
-% Flag to control the memory usage (resulting code will be slower)
-
-    low_memory = false;
-    
 %%
 
+    % Flag to control the memory usage (resulting code will be slower)
+    low_memory = false;
+    
     homogeneous = false;
     hXcache = []; % ll cache for fixed components (on train data)
     cacheValid = false; % flag indicating whether ll-cache is up-to-date

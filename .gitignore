@@ -30,13 +30,12 @@ doc/public/
 !doc/source/examples/*.html
 !doc/source/_jekyll/_layouts/*.html
 !doc/source/_jekyll/_includes/*.html
-!jekyll_online/*.html
-!jekyll_online/_layouts/*.html
-!jekyll_online/_includes/*.html
 
 # published graphics except for manually-created ones
 *.png
 !doc/source/img/*.png
 !doc/source/api/img/*.png
 !doc/source/examples/img/*.png
-!jekyll_online/img/*.png
+
+
+doc/source/_jekyll/helptoc.xml
