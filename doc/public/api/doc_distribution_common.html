@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,12 +33,14 @@
   <body>
 
     <div class="container">
-              <!-- Page Heading/Breadcrumbs -->
+
+        <!-- Page Heading/Breadcrumbs -->
         <div class="row">
             <div class="col-lg-12">
                 <h1 class="page-header">Distribution Structure Common Members
                 </h1>
-                <ol class="breadcrumb">
+
+<ol class="breadcrumb">
 	<li><a href="../index.html">Home</a></li>
 	
 	
@@ -56,6 +58,7 @@
 		
 	
 </ol>
+
             </div>
         </div>
         <!-- /.row -->
@@ -63,7 +66,8 @@
         <!-- Content Row -->
         <div class="row">
             <div class="col-lg-12">
-                    <div id="main-content" class="col-md-9"><!--introduction--><p>MixEst distribution structures expose functionality through structure fields which are (mostly) function handles. Here is the list of common fields available in all distributions (in no special order).</p><!--/introduction--><h2><tt>name</tt><a id="1"></a></h2><p>Distribution name</p><p><b>Syntax</b></p><pre class="language-matlab">str = D.name()
+
+    <div id="main-content" class="col-md-9"><!--introduction--><p>MixEst distribution structures expose functionality through structure fields which are (mostly) function handles. Here is the list of common fields available in all distributions (in no special order).</p><!--/introduction--><h2><tt>name</tt><a id="1"></a></h2><p>Distribution name</p><p><b>Syntax</b></p><pre class="language-matlab">str = D.name()
 </pre><p><b>Description</b></p><p><tt>str = D.name()</tt> returns the name of the distribution <tt>D</tt> as a string.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><pre class="language-matlab">D = mvnfactory(1);
 D.name()
 </pre><pre>ans =
@@ -276,13 +280,15 @@ value = D.selfmerge(theta1, theta2, param_name, w1, w2, method, data)
 [value, store, mixture_store] = mvn_selfmerge(theta1, theta2, param_name, w1, w2, method, data, store, mixture_D, mixture_theta, idx1, idx2, mixture_store)
 </pre></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>name</tt></a></li><li><a class="list-group-item" href="#2"><tt>M</tt></a></li><li><a class="list-group-item" href="#3"><tt>dim</tt></a></li><li><a class="list-group-item" href="#4"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#5"><tt>ll</tt></a></li><li><a class="list-group-item" href="#6"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#7"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#8"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#9"><tt>cdf</tt></a></li><li><a class="list-group-item" href="#10"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#11"><tt>sample</tt></a></li><li><a class="list-group-item" href="#12"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#13"><tt>init</tt></a></li><li><a class="list-group-item" href="#14"><tt>estimate</tt></a></li><li><a class="list-group-item" href="#15"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#16"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#17"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#18"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#19"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#20"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#21"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#22"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#23"><tt>kl</tt></a></li><li><a class="list-group-item" href="#24"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#25"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#26"><tt>display</tt></a></li><li><a class="list-group-item" href="#27"><tt>selfsplit</tt></a></li><li><a class="list-group-item" href="#28"><tt>selfmerge</tt></a></li></ul></div></div>
 
+
             </div>
         </div>
         <!-- /.row -->
 
         <hr>
 
-              <!-- Footer -->
+
+        <!-- Footer -->
         <footer id="footer">
             <div class="row">
                 <div class="col-lg-12">
@@ -292,9 +298,10 @@ value = D.selfmerge(theta1, theta2, param_name, w1, w2, method, data)
             </div>
         </footer>
 
+
     </div>
 
-        <script src="../js/jquery.js"></script>
+    <script src="../js/jquery.js"></script>
     <script src="../js/bootstrap.min.js"></script>
     <script src="../js/site.js"></script>
 

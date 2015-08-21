@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,12 +33,14 @@
   <body>
 
     <div class="container">
-              <!-- Page Heading/Breadcrumbs -->
+
+        <!-- Page Heading/Breadcrumbs -->
         <div class="row">
             <div class="col-lg-12">
                 <h1 class="page-header">totalmerge
                 </h1>
-                <ol class="breadcrumb">
+
+<ol class="breadcrumb">
 	<li><a href="../index.html">Home</a></li>
 	
 	
@@ -56,6 +58,7 @@
 		
 	
 </ol>
+
             </div>
         </div>
         <!-- /.row -->
@@ -63,8 +66,10 @@
         <!-- Content Row -->
         <div class="row">
             <div class="col-lg-12">
-                    <div id="main-content" class="col-md-9"><h1><tt>totalmerge</tt></h1><p>Total-merge algorithm for estimation of mixture model structure and parameters, with generalized internal estimations. This function is run after running a function like smem or totalsplit</p><p><b>Syntax</b></p><pre class="language-matlab">[theta, D, info, options] = totalmerge(data, theta0, target_num, options)
+
+    <div id="main-content" class="col-md-9"><h1><tt>totalmerge</tt></h1><p>Total-merge algorithm for estimation of mixture model structure and parameters, with generalized internal estimations. This function is run after running a function like smem or totalsplit</p><p><b>Syntax</b></p><pre class="language-matlab">[theta, D, info, options] = totalmerge(data, theta0, target_num, options)
 </pre><p><b>Description</b></p><p>This function implements the total-merge algorithm -- It is for merging candidates based on certain criteria to get the final results for different number of components</p><p><tt>totalmerge(data, theta0, target_num,  options)</tt> estimates and saves parameters and the mixture distributions <tt>D</tt> from number of components in <tt>theta0</tt> to <tt>target_num</tt> components,fitted to <tt>data</tt>. It can also return the last merge stage Point: If info for all merges is needed one should do only one merge</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>. You may also want to read about <a href="../estimation_options.html"><tt>options</tt></a> or <a href="../estimation_statistics_structure.html"><tt>info</tt></a> arguments.</p><p><b>Available Options</b></p><p>This function supports all the options described in <a href="../estimation_options.html">estimation options</a>. This function accepts the following additional fields in <tt>options.sm</tt>:</p><div><ul><li><b><tt>tolCostDiff</tt></b> (default <tt>0</tt>) : Minimum decrease in cost to accept a split.</li><li><b><tt>numMax</tt></b> (default <tt>2*target_num</tt>) : Maximum number of mixture components.</li><li><b><tt>componentD</tt></b> (default MVN distribution) : distribution structure defining the mixture component distribution type.</li><li><b><tt>savefoler</tt></b> (default result) : folder to save the results for different components -- the files are called tmerge%i where %i is number of components</li></ul></div><p><tt>options.inner</tt> can be used to set specific options for the inner estimations. To set options only for the partial or full inner estimations use <tt>options.inner.partial</tt> or <tt>options.inner.full</tt> respectively.</p><p><b>References</b></p><div><ol><li>S. Sra, R. Hosseini, L. Theis, and M. Bethge, &#8220;Data modeling with the elliptical gamma distribution,&#8221; in Proceedings of the Eighteenth International Conference on Artificial Intelligence and Statistics, 2015, pp. 903&#8211;911.</li></ol></div></div><div id="sidebar" class="col-md-3"></div>
+
 
             </div>
         </div>
@@ -72,7 +77,8 @@
 
         <hr>
 
-              <!-- Footer -->
+
+        <!-- Footer -->
         <footer id="footer">
             <div class="row">
                 <div class="col-lg-12">
@@ -82,9 +88,10 @@
             </div>
         </footer>
 
+
     </div>
 
-        <script src="../js/jquery.js"></script>
+    <script src="../js/jquery.js"></script>
     <script src="../js/bootstrap.min.js"></script>
     <script src="../js/site.js"></script>
 

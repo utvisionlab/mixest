@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="MixEst - The Mixture-Model Estimation Toolbox
+">
+    <link rel="canonical" href="/api/totalsplitopt.html">
+
+    <title>totalsplitopt | MixEst</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/site.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="../font-awesome-4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+
+  <body>
+
+    <div class="container">
+
+        <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">totalsplitopt
+                </h1>
+
+<ol class="breadcrumb">
+	<li><a href="../index.html">Home</a></li>
+	
+	
+	
+		
+			
+				<li><a href="..//api/index.html">api</a></li>
+			
+		
+	
+		
+			
+				<li class="active">totalsplitopt</li>
+			
+		
+	
+</ol>
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+        <div class="row">
+            <div class="col-lg-12">
+
+    <div id="main-content" class="col-md-9"><h1><tt>totalsplitopt</tt></h1><p>Total-split algorithm for estimation of mixture model structure and parameters, with generalized internal estimations.</p><p><b>Syntax</b></p><pre class="language-matlab">[theta, D] = totalsplitopt(data, target_num)
+[theta, D] = totalsplitopt(data, target_num, options)
+[theta, D, info] = totalsplitopt(<span class="keyword">...</span><span class="comment">)</span>
+[theta, D, info, options] = totalsplitopt(<span class="keyword">...</span><span class="comment">)</span>
+</pre><p><b>Description</b></p><p>This function implements the total-split (split-then-merge) algorithm proposed by Sra et al. (2015), though here we use generalized optimization methods.</p><p><tt>[theta, D] = totalsplit(data, target_num)</tt> returns the estimated parameters and the mixture distribution <tt>D</tt> with <tt>target_num</tt> components, fitted to <tt>data</tt>.</p><p><tt>[theta, D] = totalsplit(data, target_num, options)</tt> utilizes applicable options from the <tt>options</tt> structure in the estimation procedure.</p><p><tt>[theta, D, info] = totalsplit(...)</tt> also returns <tt>info</tt>, a structure array containing information about successive iterations performed by iterative estimation functions.</p><p><tt>[theta, D, info, options] = totalsplit(...)</tt> also returns the effective <tt>options</tt> used, so you can see what default values the function used on top of the options you possibly specified.</p><p>For information about the output <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>. The input argument <tt>data</tt> is described in <a href="../data_input.html">Data Input Argument to Functions</a>. You may also want to read about <a href="../estimation_options.html"><tt>options</tt></a> or <a href="../estimation_statistics_structure.html"><tt>info</tt></a> arguments.</p><p><b>Available Options</b></p><p>This function supports all the options described in <a href="../estimation_options.html">estimation options</a>. This function accepts the following additional fields in <tt>options.sm</tt>:</p><div><ul><li><b><tt>tolCostDiff</tt></b> (default <tt>0</tt>) : Minimum decrease in cost to accept a split.</li><li><b><tt>numMax</tt></b> (default <tt>2*target_num</tt>) : Maximum number of mixture components.</li><li><b><tt>componentD</tt></b> (default MVN distribution) : distribution structure defining the mixture component distribution type.</li></ul></div><p><tt>options.inner</tt> can be used to set specific options for the inner estimations. To set options only for the partial or full inner estimations use <tt>options.inner.partial</tt> or <tt>options.inner.full</tt> respectively.</p><p><b>Returned <tt>info</tt> fields</b></p><p>The fields present in the returned <tt>info</tt> structure array, depend on the solver used (<tt>options.solver</tt>). When a Manopt solver is specified, the <tt>info</tt> returned by the Manopt solver is returned directly. For the 'default' solver see the documentation of the 'estimatedefault' function for the mixture distribution. You can read more at our documentation on <a href="../estimation_statistics_structure.html">estimation statistics structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% generate 1000 random data points</span>
+data = randn(1,1000) .* 2 + 1;
+<span class="comment">% set some options</span>
+options.solver = <span class="string">'cg'</span>;
+options.verbosity = 2;
+options.sm.numMax = 7;
+options.inner.partial.maxiter = 10;
+<span class="comment">% fit mixture model to data</span>
+[theta, D] = totalsplit(data, 5, options)
+</pre><p><b>References</b></p><div><ol><li>S. Sra, R. Hosseini, L. Theis, and M. Bethge, &#8220;Data modeling with the elliptical gamma distribution,&#8221; in Proceedings of the Eighteenth International Conference on Artificial Intelligence and Statistics, 2015, pp. 903&#8211;911.</li></ol></div></div><div id="sidebar" class="col-md-3"></div>
+
+
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+
+        <!-- Footer -->
+        <footer id="footer">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>MixEst - The Mixture-Model Estimation Toolbox
+</p>
+                </div>
+            </div>
+        </footer>
+
+
+    </div>
+
+    <script src="../js/jquery.js"></script>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/site.js"></script>
+
+  </body>
+
+</html>

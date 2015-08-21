@@ -12,15 +12,15 @@
 
 %% Download
 % You can find the latest release of MixEst at our
-% <https://github.com/utvisionlab/mixest/releases GitHub page>.
+% <https://github.com/utvisionlab/mixest/releases releases page on GitHub>.
 %
 
 %% Install
-% MixEst requires the Manopt toolbox from <http://manopt.org/ manopt.org>.
-% Make sure you have it installed in your MATLAB before installing MixEst.
-%
 % To install MixEst, after extracting the downloaded archive, open up
 % MATLAB and run |install_mixest.m| located in the extracted directory.
+%
+% *Note:* <http://manopt.org/ Manopt toolbox> version 1.0.7, which is
+% required by MixEst, is included in the |thirdparty| directory.
 %
 
 %% A first example

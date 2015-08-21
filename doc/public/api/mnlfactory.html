@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,12 +33,14 @@
   <body>
 
     <div class="container">
-              <!-- Page Heading/Breadcrumbs -->
+
+        <!-- Page Heading/Breadcrumbs -->
         <div class="row">
             <div class="col-lg-12">
                 <h1 class="page-header">mnlfactory
                 </h1>
-                <ol class="breadcrumb">
+
+<ol class="breadcrumb">
 	<li><a href="../index.html">Home</a></li>
 	
 	
@@ -56,6 +58,7 @@
 		
 	
 </ol>
+
             </div>
         </div>
         <!-- /.row -->
@@ -63,10 +66,12 @@
         <!-- Content Row -->
         <div class="row">
             <div class="col-lg-12">
-                    <div id="main-content" class="col-md-9"><h2><tt>mnlfactory</tt><a id="1"></a></h2><p>Construct a multinomial logistic distribution (MaxEnt classifier)</p><p><b>Syntax</b></p><pre class="language-matlab">D = mnlfactory(datadim, num)
+
+    <div id="main-content" class="col-md-9"><h2><tt>mnlfactory</tt><a id="1"></a></h2><p>Construct a multinomial logistic distribution (MaxEnt classifier)</p><p><b>Syntax</b></p><pre class="language-matlab">D = mnlfactory(datadim, num)
 D = mnlfactory(datadim)
-</pre><p><b>Description</b></p><p><tt>D = mnlfactory(datadim, num)</tt> returns a structure representing a multi-nomial logit distribution. <tt>datadim</tt> is the dimension of input space and <tt>num</tt> is the number of labels.</p><p><tt>D = mnlfactory(datadim)</tt> is the same as above with <tt>num = 2</tt>, this case equals usual logistic regression.</p><p><b>Distribution Parameters</b></p><div><ul><li><b><tt>W</tt></b> (<tt>(num - 1)-by-datadim</tt> matrix) : A matrix containing weights from input space to <tt>num</tt> classifier</li></ul></div><p><b>Probability Density Function</b></p><p>The distribution has the following density:</p><p><img src="mnlfactory_eq16619071343943776747.png" alt="$$ f(l | x)= w_{l-1}^T x / (1 + \sum_{k=2}^{num}{ \exp(w_{k-1}^T x)}) $$"></p><h2><tt>name</tt><a id="2"></a></h2><p>See <a href="doc_distribution_common.html#1">distribution structure common members</a>.</p><h2><tt>M</tt><a id="3"></a></h2><p>See <a href="doc_distribution_common.html#2">distribution structure common members</a>.</p><h2><tt>num</tt><a id="4"></a></h2><p>Number of components</p><p><b>Syntax</b></p><pre class="language-matlab">num = D.num()
+</pre><p><b>Description</b></p><p><tt>D = mnlfactory(datadim, num)</tt> returns a structure representing a multi-nomial logit distribution. <tt>datadim</tt> is the dimension of input space and <tt>num</tt> is the number of labels.</p><p><tt>D = mnlfactory(datadim)</tt> is the same as above with <tt>num = 2</tt>, this case equals usual logistic regression.</p><p><b>Distribution Parameters</b></p><div><ul><li><b><tt>W</tt></b> (<tt>(num - 1)-by-datadim</tt> matrix) : A matrix containing weights from input space to <tt>num</tt> classifier</li></ul></div><p><b>Probability Density Function</b></p><p>The distribution has the following density:</p><p><img src="mnlfactory_eq01493.png" alt="$$ f(l | x)= w_{l-1}^T x / (1 + \sum_{k=2}^{num}{ \exp(w_{k-1}^T x)}) $$"></p><h2><tt>name</tt><a id="2"></a></h2><p>See <a href="doc_distribution_common.html#1">distribution structure common members</a>.</p><h2><tt>M</tt><a id="3"></a></h2><p>See <a href="doc_distribution_common.html#2">distribution structure common members</a>.</p><h2><tt>num</tt><a id="4"></a></h2><p>Number of components</p><p><b>Syntax</b></p><pre class="language-matlab">num = D.num()
 </pre><h2><tt>dim</tt><a id="5"></a></h2><p>See <a href="doc_distribution_common.html#3">distribution structure common members</a>.</p><h2><tt>datadim</tt><a id="6"></a></h2><p>See <a href="doc_distribution_common.html#4">distribution structure common members</a>.</p><h2><tt>llvec</tt><a id="8"></a></h2><p>See <a href="doc_distribution_common.html#6">distribution structure common members</a>.</p><h2><tt>ll</tt><a id="9"></a></h2><p>See <a href="doc_distribution_common.html#5">distribution structure common members</a>.</p><h2><tt>llgrad</tt><a id="10"></a></h2><p>See <a href="doc_distribution_common.html#7">distribution structure common members</a>.</p><h2><tt>llgraddata</tt><a id="11"></a></h2><p>See <a href="doc_distribution_common.html#8">distribution structure common members</a>.</p><h2><tt>pdf</tt><a id="12"></a></h2><p>See <a href="doc_distribution_common.html#10">distribution structure common members</a>.</p><h2><tt>sample</tt><a id="13"></a></h2><p>See <a href="doc_distribution_common.html#11">distribution structure common members</a>.</p><h2><tt>randparam</tt><a id="14"></a></h2><p>See <a href="doc_distribution_common.html#12">distribution structure common members</a>.</p><h2><tt>init</tt><a id="15"></a></h2><p>See <a href="doc_distribution_common.html#13">distribution structure common members</a>.</p><h2><tt>penalizerparam</tt><a id="17"></a></h2><p>See <a href="doc_distribution_common.html#15">distribution structure common members</a>.</p><h2><tt>penalizercost</tt><a id="18"></a></h2><p>See <a href="doc_distribution_common.html#16">distribution structure common members</a>.</p><h2><tt>penalizergrad</tt><a id="19"></a></h2><p>See <a href="doc_distribution_common.html#17">distribution structure common members</a>.</p><h2><tt>sumparam</tt><a id="20"></a></h2><p>See <a href="doc_distribution_common.html#18">distribution structure common members</a>.</p><h2><tt>scaleparam</tt><a id="21"></a></h2><p>See <a href="doc_distribution_common.html#19">distribution structure common members</a>.</p><h2><tt>sumgrad</tt><a id="22"></a></h2><p>See <a href="doc_distribution_common.html#20">distribution structure common members</a>.</p><h2><tt>scalegrad</tt><a id="23"></a></h2><p>See <a href="doc_distribution_common.html#21">distribution structure common members</a>.</p><h2><tt>entropy</tt><a id="24"></a></h2><p>See <a href="doc_distribution_common.html#22">distribution structure common members</a>.</p><h2><tt>kl</tt><a id="25"></a></h2><p>See <a href="doc_distribution_common.html#23">distribution structure common members</a>.</p><h2><tt>AICc</tt><a id="26"></a></h2><p>See <a href="doc_distribution_common.html#24">distribution structure common members</a>.</p><h2><tt>BIC</tt><a id="27"></a></h2><p>See <a href="doc_distribution_common.html#25">distribution structure common members</a>.</p><h2><tt>display</tt><a id="28"></a></h2><p>See <a href="doc_distribution_common.html#26">distribution structure common members</a>.</p></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1"><tt>mnlfactory</tt></a></li><li><a class="list-group-item" href="#2"><tt>name</tt></a></li><li><a class="list-group-item" href="#3"><tt>M</tt></a></li><li><a class="list-group-item" href="#4"><tt>num</tt></a></li><li><a class="list-group-item" href="#5"><tt>dim</tt></a></li><li><a class="list-group-item" href="#6"><tt>datadim</tt></a></li><li><a class="list-group-item" href="#8"><tt>llvec</tt></a></li><li><a class="list-group-item" href="#9"><tt>ll</tt></a></li><li><a class="list-group-item" href="#10"><tt>llgrad</tt></a></li><li><a class="list-group-item" href="#11"><tt>llgraddata</tt></a></li><li><a class="list-group-item" href="#12"><tt>pdf</tt></a></li><li><a class="list-group-item" href="#13"><tt>sample</tt></a></li><li><a class="list-group-item" href="#14"><tt>randparam</tt></a></li><li><a class="list-group-item" href="#15"><tt>init</tt></a></li><li><a class="list-group-item" href="#17"><tt>penalizerparam</tt></a></li><li><a class="list-group-item" href="#18"><tt>penalizercost</tt></a></li><li><a class="list-group-item" href="#19"><tt>penalizergrad</tt></a></li><li><a class="list-group-item" href="#20"><tt>sumparam</tt></a></li><li><a class="list-group-item" href="#21"><tt>scaleparam</tt></a></li><li><a class="list-group-item" href="#22"><tt>sumgrad</tt></a></li><li><a class="list-group-item" href="#23"><tt>scalegrad</tt></a></li><li><a class="list-group-item" href="#24"><tt>entropy</tt></a></li><li><a class="list-group-item" href="#25"><tt>kl</tt></a></li><li><a class="list-group-item" href="#26"><tt>AICc</tt></a></li><li><a class="list-group-item" href="#27"><tt>BIC</tt></a></li><li><a class="list-group-item" href="#28"><tt>display</tt></a></li></ul></div></div>
+
 
             </div>
         </div>
@@ -74,7 +79,8 @@ D = mnlfactory(datadim)
 
         <hr>
 
-              <!-- Footer -->
+
+        <!-- Footer -->
         <footer id="footer">
             <div class="row">
                 <div class="col-lg-12">
@@ -84,9 +90,10 @@ D = mnlfactory(datadim)
             </div>
         </footer>
 
+
     </div>
 
-        <script src="../js/jquery.js"></script>
+    <script src="../js/jquery.js"></script>
     <script src="../js/bootstrap.min.js"></script>
     <script src="../js/site.js"></script>
 

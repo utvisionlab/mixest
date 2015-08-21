@@ -52,6 +52,29 @@ function D = mxe_addsharedfields(D, notshared)
         rgrad = D.M.lincomb(theta, scalar, rgrad);
     end
 
+% Check is sumparam and scale param is there
+    if ~isfield(D, 'sumparam')
+        D.sumparam = @mxe_sumparam;
+    end
+    if ~isfield(D, 'scaleparam')
+        D.scaleparam = @mxe_scaleparam;
+    end    
+    
+% Check if ll was implemented
+    if ~isfield(D, 'll')
+        D.ll = @ll;
+    end
+    
+    function [ll, store] = ll(theta, data, store)
+        
+        if nargin < 3
+            store = struct;
+        end
+        
+        [llvec, store] = D.llvec(theta, data, store);
+        ll = sum(llvec);
+    end
+
 % Information Criteria
     D.AICc = @(data) mxe_AICc(D, data);
     D.BIC = @(data) mxe_BIC(D, data);

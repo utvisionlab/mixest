@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,12 +33,14 @@
   <body>
 
     <div class="container">
-              <!-- Page Heading/Breadcrumbs -->
+
+        <!-- Page Heading/Breadcrumbs -->
         <div class="row">
             <div class="col-lg-12">
                 <h1 class="page-header">Data Input Argument to Functions
                 </h1>
-                <ol class="breadcrumb">
+
+<ol class="breadcrumb">
 	<li><a href="index.html">Home</a></li>
 	
 	
@@ -50,6 +52,7 @@
 		
 	
 </ol>
+
             </div>
         </div>
         <!-- /.row -->
@@ -57,7 +60,8 @@
         <!-- Content Row -->
         <div class="row">
             <div class="col-lg-12">
-                    <div id="main-content" class="col-md-9"><!--introduction--><p>In MixEst, all the functions taking a <tt>data</tt> input argument, can accept the data in one of the following forms:</p><!--/introduction--><h2>Data Matrix<a id="1"></a></h2><p>In matrix form, the data is arranged in an n-by-N matrix where <tt>n</tt> is the dimensions of the data space and <tt>N</tt> is the number of data points (i.e. each column of the matrix represents a single observation).</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
+
+    <div id="main-content" class="col-md-9"><!--introduction--><p>In MixEst, all the functions taking a <tt>data</tt> input argument, can accept the data in one of the following forms:</p><!--/introduction--><h2>Data Matrix<a id="1"></a></h2><p>In matrix form, the data is arranged in an n-by-N matrix where <tt>n</tt> is the dimensions of the data space and <tt>N</tt> is the number of data points (i.e. each column of the matrix represents a single observation).</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and random parameters</span>
 D = mvnfactory(2);
 theta = D.randparam();
 <span class="comment">% generate 1000 random 2-dimensional data points</span>
@@ -82,13 +86,15 @@ theta = D.randparam();
 ll = D.ll(theta, struct(<span class="string">'data'</span>, randn(2,1000), <span class="string">'weight'</span>, rand(1,1000)))
 </pre></div><div id="sidebar" class="col-md-3"><div id="sidenav" role="navigation"><h3>Contents</h3><ul class="nav nav-pills nav-stacked"><li><a class="list-group-item" href="#1">Data Matrix</a></li><li><a class="list-group-item" href="#2">Data Structure</a></li></ul></div></div>
 
+
             </div>
         </div>
         <!-- /.row -->
 
         <hr>
 
-              <!-- Footer -->
+
+        <!-- Footer -->
         <footer id="footer">
             <div class="row">
                 <div class="col-lg-12">
@@ -98,9 +104,10 @@ ll = D.ll(theta, struct(<span class="string">'data'</span>, randn(2,1000), <span
             </div>
         </footer>
 
+
     </div>
 
-        <script src="js/jquery.js"></script>
+    <script src="js/jquery.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/site.js"></script>
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,12 +33,14 @@
   <body>
 
     <div class="container">
-              <!-- Page Heading/Breadcrumbs -->
+
+        <!-- Page Heading/Breadcrumbs -->
         <div class="row">
             <div class="col-lg-12">
                 <h1 class="page-header">mxe_readdata
                 </h1>
-                <ol class="breadcrumb">
+
+<ol class="breadcrumb">
 	<li><a href="../index.html">Home</a></li>
 	
 	
@@ -56,6 +58,7 @@
 		
 	
 </ol>
+
             </div>
         </div>
         <!-- /.row -->
@@ -63,9 +66,11 @@
         <!-- Content Row -->
         <div class="row">
             <div class="col-lg-12">
-                    <div id="main-content" class="col-md-9"><h1><tt>mxe_readdata</tt></h1><p><b>Note:</b> This is a private function.</p><p>Read data points, data weights, indices of data to be worked on, and data tag, from the given data argument. (Used in functions that have a data input argument)</p><p><b>Syntax</b></p><pre class="language-matlab">data_struct = mxe_readdata(data)
+
+    <div id="main-content" class="col-md-9"><h1><tt>mxe_readdata</tt></h1><p><b>Note:</b> This is a private function.</p><p>Read data points, data weights, indices of data to be worked on, and data tag, from the given data argument. (Used in functions that have a data input argument)</p><p><b>Syntax</b></p><pre class="language-matlab">data_struct = mxe_readdata(data)
 data_struct = mxe_readdata(data, false)
 </pre><p><b>Description</b></p><p>The output <tt>data_struct</tt> has the following fields:</p><div><ul><li><b><tt>data</tt></b> (<tt>n-by-N</tt>, where <tt>n</tt> is the data dimensions and <tt>N</tt> is the number of total data points) : Data matrix.</li><li><b><tt>index</tt></b> (<tt>1-by-L</tt> where <tt>L</tt> is the size of the demanded subset of data points. default value: <tt>[]</tt>) : Data indexing vector for selecting a subset of data (Only numeric indexing is supported. Logical indexing is not supported.)</li><li><b><tt>weight</tt></b> (<tt>1-by-N</tt>, if index is empty, <tt>1-by-L</tt> if indexing is used. default value: <tt>[]</tt>) : Data weight vector,</li><li><b><tt>size</tt></b> (integer): the number of data points (in the demanded subset).</li><li><b><tt>tag</tt></b> (string, default value: <tt>''</tt>): A tag for the data that can be used for special purposes.</li></ul></div><p><tt>data_struct = mxe_readdata(data)</tt> reads the given <tt>data</tt> and fills the output structure <tt>data_struct</tt>.</p><p>The given <tt>data</tt> may be a matrix, in which case it is returned untouched as <tt>data_struct.data</tt>, and the other fields of <tt>data_struct</tt> are set to their default values.</p><p>In case <tt>data</tt> is a structure, it may contain any of the fields mentioned above for <tt>data_struct</tt> (Note that the field <tt>data.data</tt> is mandatory). The fields in <tt>data</tt> are copied to the output structure. If <tt>data</tt> includes a non-empty <tt>index</tt> field, this syntax applies the indexing to the data (<tt>data_struct.data = data.data(:,data.index)</tt>) and empties the index (<tt>data_struct.index = []</tt>).</p><p><tt>data_struct = mxe_readdata(data, false)</tt> does not apply the indexing. Instead, returns the <tt>index</tt> for customised use. If input <tt>data</tt> is a structure without an <tt>index</tt> field (or with an empty value for <tt>index</tt>), an index refering to all the data is generated.</p><p><b>Note:</b> Use this function only when you use <tt>weight</tt> or <tt>index</tt> in your function. The passed in data argument can be passed out to other functions intact, when <tt>weight</tt> or <tt>index</tt> are not used in your function.</p><p><b>Note:</b> In MATLAB versions R2011b and above, instead of the data matrix, you can give a <tt>matlab.io.MatFile</tt> object referring to a MAT-file containing a variable named <tt>data</tt> with specifications as pointed out above.</p></div><div id="sidebar" class="col-md-3"></div>
+
 
             </div>
         </div>
@@ -73,7 +78,8 @@ data_struct = mxe_readdata(data, false)
 
         <hr>
 
-              <!-- Footer -->
+
+        <!-- Footer -->
         <footer id="footer">
             <div class="row">
                 <div class="col-lg-12">
@@ -83,9 +89,10 @@ data_struct = mxe_readdata(data, false)
             </div>
         </footer>
 
+
     </div>
 
-        <script src="../js/jquery.js"></script>
+    <script src="../js/jquery.js"></script>
     <script src="../js/bootstrap.min.js"></script>
     <script src="../js/site.js"></script>
 
