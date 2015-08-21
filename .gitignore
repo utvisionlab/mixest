@@ -20,8 +20,10 @@ slprj/
 helpsearch/
 
 
-# auto-generated documentation 
+# files only included in release versions
 doc/public/
+Contents.m
+
 
 # published html except for manually-created ones
 *.html
@@ -37,5 +39,5 @@ doc/public/
 !doc/source/api/img/*.png
 !doc/source/examples/img/*.png
 
-
+# other special files
 doc/source/_jekyll/helptoc.xml

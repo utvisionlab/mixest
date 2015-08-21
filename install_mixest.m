@@ -15,8 +15,9 @@ fprintf('[Done]\n')
 
 % Compile mex files
 fprintf('Compiling mex files...\n');
-mex(fullfile(toolbox_root_path, 'mixest', 'auxillary', 'manopt_manifolds', 'positivedefinite', 'sqrtm_triu_real.c'));
-mex(fullfile(toolbox_root_path, 'mixest', 'auxillary', 'manopt_manifolds', 'positivedefinite', 'sqrtm_triu_complex.c'));
+mex_dir = fullfile(toolbox_root_path, 'mixest', 'auxiliary', 'manopt_manifolds', 'positivedefinite');
+mex('-outdir', mex_dir, fullfile(mex_dir, 'sqrtm_triu_real.c'));
+mex('-outdir', mex_dir, fullfile(mex_dir, 'sqrtm_triu_complex.c'));
 fprintf('[Done]\n')
 
 fprintf('\nMixEst has been successfully installed.\n');
