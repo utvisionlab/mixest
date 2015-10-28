@@ -104,6 +104,13 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     % Adding store in costgrad decreases the speed in line search
     %problem.costgrad = @(theta, store) mxe_costgrad(D, theta, dataTrain, options, store);
 
+    % Computing gradient of batch needed for stochastic optimization
+    if isfield(options, 'gradbatch')
+        problem.gradbatch = options.gradbatch;
+    else
+        problem.gradbatch = @(theta, batch_index) mxe_gradbatch(D, theta, ...
+            struct('data', datamat, 'index', idxTrain), batch_index, options);
+    end
     
     % checkgradient
     if options.checkgradient
