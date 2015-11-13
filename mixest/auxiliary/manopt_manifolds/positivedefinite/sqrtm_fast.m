@@ -29,7 +29,7 @@ elseif isreal(T) &&  all(diag(T)>0)
     Ts = sqrtm_triu_real(T);
 elseif isreal(T)
     % case of real input
-    Ts = sqrtm_triu_complex(T+1i*zeros(size(T,1)));
+    Ts = sqrtm_triu_negative(T);
 else
     Ts = sqrtm_triu_complex(T);
 end
