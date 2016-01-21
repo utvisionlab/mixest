@@ -19,7 +19,11 @@ function As=sqrtm_fast(A)
 %  ToDO:For Hermitian positive definite there is a faster version based on
 %      Chapter 6 of "Functions of Matrices" by N. J. Higham
 %
-
+if any(isinf(A(:))) || any(isnan(A(:))) 
+    As = eye(size(A));
+    return
+end
+    
 [U,T]=schur(A,'complex');
 if isequal(T,diag(diag(T))) 
     % case of symmetric or hermitian input
