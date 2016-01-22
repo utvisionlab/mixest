@@ -33,7 +33,6 @@ void mexFunction(int nlhs, mxArray *plhs[],
     }
     
     Tr = mxGetPr(prhs[0]);
-    Ti = mxGetPi(prhs[0]);
     
     /* Set the output pointer to the output matrix. */
     plhs[0] = mxCreateDoubleMatrix(m, n, mxCOMPLEX);
@@ -47,23 +46,15 @@ void mexFunction(int nlhs, mxArray *plhs[],
     for(j=0;j<n;j++) {
         for(i=j-1;i>=0;i--) {
             *(Sr + i + m*j) = *(Tr + i + m*j);
-            *(Si + i + m*j) = *(Ti + i + m*j);
         }
     }
 
     /* Upper triangular */
     for(j=0;j<n;j++) {
-        absval = *(Tr + j + m*j) * *(Tr + j + m*j) + 
-                *(Ti + j + m*j) * *(Ti + j + m*j);
+        absval = *(Tr + j + m*j) * *(Tr + j + m*j);
         absval = sqrt(absval);
         *(Sr + j + m*j) = sqrt( (*(Tr + j + m*j) + absval)/2 );
-        if(*(Ti + j + m*j) > 0)
-            *(Si + j + m*j) = sqrt( (absval - *(Tr + j + m*j))/2 );
-        else
-            *(Si + j + m*j) = - sqrt( (absval - *(Tr + j + m*j))/2 );
-        // num = csqrt(*(Tr + j + m*j) + *(Ti + j + m*j) *I);
-        // *(Sr + j + m*j) = creal(num);
-        // *(Si + j + m*j) = cimag(num);
+        *(Si + j + m*j) = sqrt( (absval - *(Tr + j + m*j))/2 );
     }
     
     for(j=1;j<n;j++) {
@@ -78,7 +69,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
             }
             
             numreal = *(Tr+i+m*j) - sreal;
-            numimag = *(Ti+i+m*j) - simag;
+            numimag = - simag;
             denumreal = *(Sr+i+m*i) + *(Sr+j+m*j);
             denumimag = *(Si+i+m*i) + *(Si+j+m*j);
             

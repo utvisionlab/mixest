@@ -183,7 +183,23 @@ function D = mnlfactory(datadim, num)
         
         error('llgraddata not implemented yet');
     end
-    
+
+%% |predict|
+%
+
+    D.predict = @predict;
+    function [label, store] = predict(theta, data, store)
+        data = mxe_readdata(data, false);
+        datam = data.data(1:datadim,:);
+        ps = zeros(num, data.size);
+        for k = 1:num
+            datap = [datam; ones(1, data.size)*k];
+            [pspart, store] = D.llvec(theta, datap);
+            ps(k,:) = pspart;
+        end
+        [notused, label] = max(ps, [], 1);
+    end
+
 %% |pdf|
 % See <doc_distribution_common.html#10 distribution structure common members>.
 
