@@ -69,6 +69,12 @@ function options = mxe_options(options, extra_defaults)
             'mergecriterion', 'kl', ... 'kl', 'overlap', 'rand'
             'splitinit', 'default', ... Split method name or function handle or e.g. options.splitinit.mvn.mu = 'method'
             'mergeinit', 'default' ... Split method name or function handle or e.g. options.mergeinit.mvn.mu = 'method'
+            ), ...
+        ... stochastic gradient descend
+        'sgd', struct(...
+            'batchnum', 100, ... Number of batches in SGD
+            'epoch', 50, ... Stop as soon as number of epochs reachs epoc
+            'stepsize', 0.1 ... step size in SGD
             ) ...
         ... See also mxe_inneroptions
         );
