@@ -34,6 +34,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     data = mxe_readdata(data, false);
     idxAll = data.index;
     datamat = data.data;
+    weight = data.weight;
 
     % get solver handle (if it is not already)
     if ischar(options.solver)
@@ -72,7 +73,8 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
 
     % cross validation init
     if options.crossval.enabled
-        [cv, idxTrain] = mxe_crossvalidation(struct('data',datamat, 'index',idxAll), ...
+        
+        [cv, idxTrain] = mxe_crossvalidation(struct('data',datamat, 'index',idxAllm,'weight', weight), ...
             options.crossval.fraction, options.crossval.toliter, ...
             @(theta, data) mxe_costgrad(D, theta, data, options));
     else
@@ -95,10 +97,10 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     function [cost, grad] = costgrad(theta)
         if nargout > 1
             [cost, grad] = mxe_costgrad(D, theta, ...
-                struct('data',datamat, 'index',idxTrain), options);
+                struct('data',datamat, 'index',idxTrain, 'weight', weight), options);
         else
              cost = mxe_costgrad(D, theta, ...
-                 struct('data',datamat, 'index',idxTrain), options);
+                 struct('data',datamat, 'index',idxTrain, 'weight', weight), options);
         end
     end
     % Adding store in costgrad decreases the speed in line search
@@ -109,7 +111,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
         problem.gradbatch = options.gradbatch;
     else
         problem.gradbatch = @(theta, batch_index) mxe_gradbatch(D, theta, ...
-            struct('data', datamat, 'index', idxTrain), batch_index, options);
+            struct('data', datamat, 'index', idxTrain, 'weight', weight), batch_index, options);
     end
     
     % checkgradient
@@ -143,7 +145,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
 
     % theta0
     if isempty(options.theta0) && isfield(D, 'init')
-        options.theta0 = D.init(struct('data',datamat, 'index',idxTrain));
+        options.theta0 = D.init(struct('data',datamat, 'index',idxTrain, 'weight', weight));
     end % else Manopt will generate a random theta0 if it is empty
     
     % TODO: Update manopt optimization algorithms of takig curiter into account
