@@ -28,6 +28,12 @@ function [theta, D, info, options] = moe_estimatedefault(D, data, options)
         options = mxe_options(options);
     end
     
+    if options.penalize
+        if isempty(options.penalizertheta)
+            options.penalizertheta = D.penalizerparam(data);
+        end
+    end
+    
     % cross validation init
     nAll = size(idxAll, 2);
     nTrain = nAll;
@@ -79,6 +85,11 @@ function [theta, D, info, options] = moe_estimatedefault(D, data, options)
     [llvec, store] = D.llvec(theta, dataTrain);
     hX = exp(bsxfun(@minus, store.logpcond, store.logpcondsum));
     ll = mean(llvec);
+    if options.penalize
+        costPen = D.penalizercost(theta, options.penalizertheta);
+        ll = ll + costPen/ length(llvec);
+        %pause
+    end
     ll_old = ll;   
     ll_diff = 0; 
     
@@ -150,11 +161,15 @@ function [theta, D, info, options] = moe_estimatedefault(D, data, options)
             comp_options.solver = 'default';
             comp_options.verbosity = 0;
             comp_options.maxiter = 1;
+            comp_options.previnfo = [];
             comp_options.crossval.enabled = false;
             Component = D.expert(k);
             if ~isfield(Component,'estimatedefault');
-                comp_options.solver = 'cg';
-                comp_options.maxiter = 10;
+                comp_options.solver = 'lbfgs';
+                comp_options.maxiter = 50;
+            end
+            if options.penalize
+                comp_options.penalizertheta = options.penalizertheta.D{k};
             end
             % Updating experts
             comp_options.theta0 = theta.D{k};
@@ -165,8 +180,11 @@ function [theta, D, info, options] = moe_estimatedefault(D, data, options)
         datatot = [datamat(1:Gate.datadim(),idxTrain); hX];
         
         if ~isfield(Component,'estimatedefault');
-            comp_options.solver = 'cg';
+            comp_options.solver = 'lbfgs';
             comp_options.maxiter = 50;
+        end
+        if options.penalize
+            comp_options.penalizertheta = options.penalizertheta.G;
         end
         comp_options.theta0 = theta.G;
         theta.G = Gate.estimateMstep(datatot, comp_options);
@@ -174,6 +192,11 @@ function [theta, D, info, options] = moe_estimatedefault(D, data, options)
         [llvec, store] = D.llvec(theta, dataTrain);
         hX = exp(bsxfun(@minus, store.logpcond, store.logpcondsum));
         ll = mean(llvec);
+        if options.penalize
+            costPen = D.penalizercost(theta, options.penalizertheta);
+            ll = ll + costPen/ length(llvec);
+            %pause
+        end
         ll_diff = ll - ll_old;
         
         ll_old = ll;
