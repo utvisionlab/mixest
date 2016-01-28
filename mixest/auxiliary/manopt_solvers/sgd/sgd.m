@@ -56,7 +56,7 @@ function [x cost info] = sgd(problem, x, options)
     % Create a store database
     storedb = struct();
 
-    timetic = tic();
+    %timetic = tic();
 
     % If no initial point x is given by the user, generate one at random.
     if ~exist('x', 'var') || isempty(x)
@@ -66,15 +66,49 @@ function [x cost info] = sgd(problem, x, options)
     if options.verbosity >= 2
         warning('Verbosity 2 slows down the procedure');
         fprintf(' epoch \t cost val\t grad. norm\n');
+        [cost grad storedb] = getCostGrad(problem, x, storedb);
+        gradnorm = problem.M.norm(x, grad);
+        fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
     end
 
+    epoch = 0; 
+    stats = savestats();
+    info(1) = stats;
+    info(min(10000, options.sgd.epoch+1)).iter = [];
+        
     % Start iterating until stopping criterion triggers
     for epoch = 1:options.sgd.epoch
+        
+        % Start timing this iteration
+        timetic = tic();
 
-        % Iteration counter (at any point, iter is the number of fully executed
-        % iterations so far)
-        iter = 0;
-
+        for batchIndex = 1:options.sgd.batchnum
+            
+            % Compute the new gradient-related quantities for x
+            grad = problem.gradbatch(x, batchIndex);
+            
+            
+            if ~isinf(options.sgd.diminishC)
+                alpha = options.sgd.stepsize * (options.sgd.diminishC /...
+                    (options.sgd.diminishC + (epoch-1)*options.sgd.batchnum+batchIndex-1));
+            else
+                alpha = options.sgd.stepsize;
+            end
+            if options.sgd.momentum == 0 || (batchIndex == 1 && epoch == 1)
+                % Pick the descent direction as minus the gradient
+                desc_dir = problem.M.lincomb(x, -1, grad);
+            else
+                distp = problem.M.log(x, xold);
+                desc_dir = problem.M.lincomb(x, -1, grad, ...
+                    -1*options.sgd.momentum, distp);
+            end
+            xold = x;
+            x = problem.M.retr(x, desc_dir, alpha); 
+            
+        end
+        
+        timetoc = toc(timetic);
+        
         % Display iteration information
         if options.verbosity >= 2
             % Compute objective-related quantities for x
@@ -82,20 +116,15 @@ function [x cost info] = sgd(problem, x, options)
             gradnorm = problem.M.norm(x, grad);
             fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
         end
-
+        
         % Save stats in a struct array info, and preallocate
         % (see http://people.csail.mit.edu/jskelly/blog/?x=entry:entry091030-033941)
         stats = savestats();
-        info(epoch) = stats; %#ok<AGROW>
-        if epoch == 1
-            info(min(10000, options.sgd.epoch+1)).iter = [];
-        end
-        % Start timing this iteration
-        timetic = tic();
-
+        info(epoch+1) = stats; %#ok<AGROW>
+        
         % Run standard stopping criterion checks
         [stop reason] = stoppingcriterion(problem, x, options, ...
-            info, iter+1);
+            info, epoch+1);
 
         if stop
             if options.verbosity >= 1
@@ -104,20 +133,10 @@ function [x cost info] = sgd(problem, x, options)
             break;
         end
         
-        for batchIndex = 1:options.sgd.batchnum-1
-            
-            % Compute the new gradient-related quantities for x
-            grad = problem.gradbatch(x, batchIndex);
-            
-            % Pick the descent direction as minus the gradient
-            desc_dir = problem.M.lincomb(x, -1, grad);
-
-            x = problem.M.retr(x, desc_dir, options.sgd.stepsize);       
-            
-        end
+        
     end
 
-    info = info(1:iter+1);
+    info = info(1:options.sgd.epoch+1);
 
     if options.verbosity >= 1
         fprintf('Total time is %f [s] (excludes statsfun)\n', ...
@@ -132,13 +151,12 @@ function [x cost info] = sgd(problem, x, options)
             stats.gradnorm = gradnorm;
             stats.cost = cost;
         end
-        if epoch == 1
-            stats.time = toc(timetic);
+        if epoch == 0
+            stats.time = 0;%toc(timetic);
         else
-            stats.time = info(epoch-1).time + toc(timetic);
+            stats.time = info(epoch).time + timetoc;
         end
         stats = applyStatsfun(problem, x, storedb, options, stats);
-        stats
     end
 
 end

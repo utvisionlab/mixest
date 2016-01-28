@@ -68,6 +68,20 @@ function M = simplexfactory(n)
         y = y / sum(y);
     end
     
+    M.log = @logmap;
+    function d = logmap(x, y)
+        if length(x) == 1
+            d = 0;
+            return;
+        end
+        % apply first the following change of variable
+        xn = log(x(1:n-1)) - log(x(n));
+        yn = log(y(1:n-1)) - log(y(n));
+        
+        % distance between transformed points
+        d = yn - xn;
+    end
+
     M.retr = M.exp;
 
     M.hash = @(x) ['z' hashmd5(x(:))];
