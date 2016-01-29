@@ -89,6 +89,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     % problem
     %dataTrain = struct('data',datamat, 'index',idxTrain);
     problem.M = D.M;
+    problem.D = D;
     if isfield(options, 'costgrad')
         problem.costgrad = options.costgrad;
     else
@@ -105,12 +106,35 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     end
     % Adding store in costgrad decreases the speed in line search
     %problem.costgrad = @(theta, store) mxe_costgrad(D, theta, dataTrain, options, store);
+    
+    if isfield(options, 'ecostgrad')
+        problem.ecostgrad = options.ecostgrad;
+    else
+        problem.ecostgrad = @ecostgrad;
+    end
+    function [cost, grad] = ecostgrad(theta)
+        if nargout > 1
+            [cost, grad] = mxe_ecostgrad(D, theta, ...
+                struct('data',datamat, 'index',idxTrain), options);
+        else
+             cost = mxe_ecostgrad(D, theta, ...
+                 struct('data',datamat, 'index',idxTrain), options);
+        end
+    end
 
     % Computing gradient of batch needed for stochastic optimization
     if isfield(options, 'gradbatch')
         problem.gradbatch = options.gradbatch;
     else
         problem.gradbatch = @(theta, batch_index) mxe_gradbatch(D, theta, ...
+            struct('data', datamat, 'index', idxTrain, 'weight', weight), batch_index, options);
+    end
+    
+    % Computing gradient of batch needed for stochastic optimization
+    if isfield(options, 'egradbatch')
+        problem.egradbatch = options.egradbatch;
+    else
+        problem.egradbatch = @(theta, batch_index) mxe_egradbatch(D, theta, ...
             struct('data', datamat, 'index', idxTrain, 'weight', weight), batch_index, options);
     end
     

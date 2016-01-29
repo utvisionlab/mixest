@@ -63,12 +63,22 @@ function [x cost info] = sgd(problem, x, options)
         x = problem.M.rand();
     end
 
-    if options.verbosity >= 2
-        warning('Verbosity 2 slows down the procedure');
-        fprintf(' epoch \t cost val\t grad. norm\n');
-        [cost grad storedb] = getCostGrad(problem, x, storedb);
+    if options.verbosity >= 2 || options.sgd.svrg
+        if options.verbosity >= 2 && ~ options.sgd.svrg
+            warning('Verbosity 2 slows down the procedure');
+        end
+        [cost egrad storedb] = getEuclideanCostGrad(problem, x, storedb);
+        grad= problem.M.egrad2rgrad(x, egrad);
         gradnorm = problem.M.norm(x, grad);
-        fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
+        if options.sgd.svrg
+            base_x = x;
+            base_egrad = egrad;
+            base_grad = grad;
+        end
+        if options.verbosity >= 2
+            fprintf(' epoch \t cost val\t grad. norm\n');
+            fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
+        end
     end
 
     epoch = 0; 
@@ -83,9 +93,11 @@ function [x cost info] = sgd(problem, x, options)
         timetic = tic();
 
         for batchIndex = 1:options.sgd.batchnum
-            
+            if mod(batchIndex,100) == 1
+                fprintf('.')
+            end
             % Compute the new gradient-related quantities for x
-            grad = problem.gradbatch(x, batchIndex);
+            egrad = problem.egradbatch(x, batchIndex);
             
             
             if ~isinf(options.sgd.diminishC)
@@ -96,25 +108,66 @@ function [x cost info] = sgd(problem, x, options)
             end
             if options.sgd.momentum == 0 || (batchIndex == 1 && epoch == 1)
                 % Pick the descent direction as minus the gradient
-                desc_dir = problem.M.lincomb(x, -1, grad);
+                desc_dir_euc = problem.D.scaleparam(-1*alpha, egrad);
+                desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
             else
-                distp = problem.M.log(x, xold);
-                desc_dir = problem.M.lincomb(x, -1, grad, ...
-                    -1*options.sgd.momentum, distp);
+                if options.sgd.euclidbase
+                    % Using Euclidean Gradient with momentum and then retr
+                    desc_dir_euc = problem.D.scaleparam(-1*alpha, egrad);
+                    desc_dir_euc_old = problem.D.scaleparam(options.sgd.momentum, desc_dir_euc_old);
+                    desc_dir_euc = problem.D.sumparam(desc_dir_euc, desc_dir_euc_old);
+                    desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
+                else
+                    % Concept of momentum makes sense in Riemmanian domain
+                    % Using the same direction for improvement
+                    grad = problem.M.egrad2rgrad(x, egrad);
+                    distp = problem.M.transp(xold, x, desc_dir_old);
+                    desc_dir = problem.M.lincomb(x, -1*alpha, grad, ...
+                        options.sgd.momentum, distp);
+                end
+            end
+            if options.sgd.svrg
+                if options.sgd.euclidbase
+                    % Concept of reducing variance of gradient
+                    % We observed it is better to do that on Euclidean domain
+                    % Than using Parallel transport in Riemmanian
+                    grad_svrg = problem.egradbatch(base_x, batchIndex);
+                    grad_svrg = problem.D.scaleparam(-1, grad_svrg);
+                    grad_svrg = problem.D.sumparam(base_egrad, grad_svrg);
+                    desc_dir_svrg = problem.D.scaleparam(-1*alpha, grad_svrg);
+                    desc_dir_euc = problem.D.sumparam(desc_dir_euc, desc_dir_svrg);
+                    desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
+                else
+                    % Different version using parallel transport Riem grad
+                    grad_svrg = problem.gradbatch(base_x, batchIndex);
+                    grad_svrg = problem.M.lincomb(base_x, 1, base_grad, -1, grad_svrg);
+                    desc_dir_svrg = problem.M.transp(base_x, x, grad_svrg);
+                    desc_dir = problem.M.lincomb(x, 1, desc_dir, ...
+                        -1*alpha, desc_dir_svrg);
+                end
             end
             xold = x;
-            x = problem.M.retr(x, desc_dir, alpha); 
+            desc_dir_old = desc_dir;
+            desc_dir_euc_old = desc_dir_euc;
+            x = problem.M.retr(x, desc_dir, 1); 
             
         end
-        
         timetoc = toc(timetic);
         
         % Display iteration information
-        if options.verbosity >= 2
+        if options.verbosity >= 2 || options.sgd.svrg
             % Compute objective-related quantities for x
-            [cost grad storedb] = getCostGrad(problem, x, storedb);
+            [cost egrad storedb] = getEuclideanCostGrad(problem, x, storedb);
+            grad = problem.M.egrad2rgrad(x, egrad);
             gradnorm = problem.M.norm(x, grad);
-            fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
+            if options.sgd.svrg
+                base_x = x;
+                base_egrad = egrad;
+                base_grad = grad;
+            end
+            if options.verbosity >= 2
+                fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
+            end
         end
         
         % Save stats in a struct array info, and preallocate

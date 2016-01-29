@@ -23,7 +23,7 @@
 % Change log: 
 %
 
-function grad = mxe_gradbatch(D, theta, data, batch_index, options)
+function egrad = mxe_egradbatch(D, theta, data, batch_index, options)
 % Note: options are NOT optional here. Following fields are required:
 %
 % * penalize
@@ -61,7 +61,5 @@ function grad = mxe_gradbatch(D, theta, data, batch_index, options)
         egradPen = D.scaleparam(-1/data_size, egradPen);
         egrad = D.sumparam(egrad, egradPen);
     end
-    
-    grad = D.M.egrad2rgrad(theta, egrad);
     
 end
