@@ -86,6 +86,7 @@ function [x cost info] = sgd(problem, x, options)
     info(1) = stats;
     info(min(10000, options.sgd.epoch+1)).iter = [];
         
+    cost = nan;
     % Start iterating until stopping criterion triggers
     for epoch = 1:options.sgd.epoch
         

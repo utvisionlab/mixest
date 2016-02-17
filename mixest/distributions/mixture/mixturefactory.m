@@ -2096,7 +2096,7 @@ function D = mixturefactory(ComponentD, num)
         dreg = dreg - dreg2;
         % based on regularization gradient update the component weighting
         weight_mod = bsxfun(@times, dreg, component_weights);
-        common_part = col_sum(weight_mod);
+        common_part = sum(weight_mod, 1);
         
         component_weights = component_weights+ weight_mod - ...
             bsxfun(@times, component_weights, common_part);

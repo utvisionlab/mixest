@@ -74,7 +74,7 @@ x(end, :) = 1;
 while 1 
   rd = randn(d, k);
   rd(end, :) = 0;
-  nd = sqrt(col_sum(rd.^2));
+  nd = sqrt(sum(rd.^2, 1));
   rd = bsxfun(@rdivide, rd, nd);
   
   t = sqrt(c) * sqrt(k) * trials/10 * rand(1,k);
