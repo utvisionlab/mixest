@@ -270,18 +270,24 @@ function D = mixturefactory(ComponentD, num)
         end
         
         if homogeneous
-            varM = powermanifold(ComponentD.M, num);
+            %varM = powermanifold(ComponentD.M, num);
+            CMM = mxe_addsharedmanifold(ComponentD.M);
+            varM = mxe_powermanifold(CMM, num);
         else
             elements = cell(num, 1);
             for k = 1:num
-                elements{k} = varD{k}.M;
+                elements{k} = mxe_addsharedmanifold(varD{k}.M);
             end
-            varM = mxe_productmanifold(elements);
+            %varM = mxe_productmanifold(elements);
+            varM = mxe_product2manifold(elements);
         end
         % When having fixed components, p(num+1) is the global weight for fixedtheta.p
         % Note: fixedtheta.p always sums to 1
-        p = simplexfactory(nump);
-        M = productmanifold(struct('D', varM, 'p', p));
+        
+        %p = simplexfactory(nump);
+        p = mxe_addsharedmanifold(simplexfactory(nump));
+        %M = productmanifold(struct('D', varM, 'p', p));
+        M = mxe_productmanifold(struct('D', varM, 'p', p));
     end
 
     % from here on use Components{k} to access k'th component irrespective

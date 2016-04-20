@@ -270,7 +270,9 @@ function [stepsize newx storedb lsmem lsstats] = ...
     lsmem.f0 = f0;
     lsmem.df0 = df0;
     lsmem.alpha = new_alpha;
-    
+    if debug
+        ls_iter
+    end
     % As seen outside this function, stepsize is the size of the vector we
     % retract to make the step from x to newx. 
     stepsize = new_alpha;

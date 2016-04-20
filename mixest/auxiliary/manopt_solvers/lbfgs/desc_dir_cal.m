@@ -51,17 +51,17 @@ p_prev = M.lincomb(x_all{corrections+1}, 1, p , - coef, ...
 
 % Doing an inverse retraction from a point to the previous one
 if isfield(M,'transpf')
-    p_invtransp = M.transpF(Expci_all{corrections},p_prev);
+    p_invtransp = M.transpf(Expci_all{corrections},p_prev);
     if corrections >1
         vec_prec= desc_dir_cal(p_invtransp, M, grad_diff_all, desc_dir_all, ...
             x_all, ddgd, gd, corrections-1, Hdiag, Expc_all, Expci_all);
     else
         vec_prec = M.lincomb(x_all{corrections+1}, Hdiag, p_prev);
     end
-    vec_new = M.itranspF(Expc_all{corrections},vec_prec);
+    vec_new = M.atranspf(Expc_all{corrections},vec_prec);
 else
-    if isfield(M,'itransp')
-        p_invtransp = M.itransp(x_all{corrections},x_all{corrections+1},p_prev);
+    if isfield(M,'atranspf')
+        p_invtransp = M.atranspf(x_all{corrections},x_all{corrections+1},p_prev);
     else
         % inverse vector transport is not implemented
         p_invtransp = M.transp(x_all{corrections+1},x_all{corrections},p_prev);

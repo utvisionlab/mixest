@@ -189,10 +189,11 @@ while true
     
     % Using previous and new information to update
     if isfield(problem.M,'transpf')
-        [gradC, Expc, Expci] = problem.M.transpf(x, newx, grad);
+        [gradC, Expc, Expci] = problem.M.transpstore(x, newx, grad);
     else
         gradC = problem.M.transp(x, newx, grad);
     end
+    %Expc.D{1}.sigmat
     grad_diff = problem.M.lincomb(newx, 1, newgrad, -1, gradC);
     
     % Multiplying the stepsize in descent direction
@@ -202,7 +203,7 @@ while true
     
     % Parallel transport descent to the new point
     if isfield(problem.M,'transpf')
-        desc_dir_step = problem.M.transpF(Expc, desc_dir_step);
+        desc_dir_step = problem.M.transpf(Expc, desc_dir_step);
     else
         desc_dir_step = problem.M.transp(x, newx, desc_dir_step);
     end
