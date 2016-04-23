@@ -166,8 +166,9 @@ function Mn = mxe_poweraddmanifold(M, n)
         u = cell(n, 1);
         for i = 1 : n
             u{i} = M.randvec(x{i});
+            u{i} = M.lincomb(x{i}, 1/sqrt(n), u{i});
         end
-        u = M.lincomb(x, 1/sqrt(n), u);
+        
     end
 
     Mn.zerovec = @zerovec;

@@ -417,6 +417,28 @@ function D = vmffactory(datadim)
         [varargout{1:nargout}] = vmf_estimatedefault(D, varargin{:});
     end
 
+%% |penalizerparam|
+% See <doc_distribution_common.html#15 distribution structure common members>.
+%
+% *Penalizer Info*
+%
+% The default penalizer for this distribution is the vMF 
+% distribution for mean and Log-Normal distribution for kappa
+%
+% See: Gopal & Young,"von-Mises Fisher clusterig Models"
+%
+
+    D.penalizerparam = @penalizerparam;
+    function penalizer_theta = penalizerparam(data)
+        
+        theta = estimatedefault(data);
+        penalizer_theta.mu0 = theta.mu;
+        penalizer_theta.kappa0 = theta.kappa;
+        penalizer_theta.m = log(theta.kappa);
+        penalizer_theta.sigma = 10;
+        
+    end
+
 %% |sumparam|
 % See <doc_distribution_common.html#18 distribution structure common members>.
 

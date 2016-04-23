@@ -271,12 +271,13 @@ function D = mixturefactory(ComponentD, num)
         
         if homogeneous
             %varM = powermanifold(ComponentD.M, num);
-            CMM = mxe_addsharedmanifold(ComponentD.M);
-            varM = mxe_powermanifold(CMM, num);
+            %CMM = mxe_addsharedmanifold(ComponentD.M);
+            varM = mxe_powermanifold(ComponentD.M, num);
         else
             elements = cell(num, 1);
             for k = 1:num
-                elements{k} = mxe_addsharedmanifold(varD{k}.M);
+                elements{k} = varD{k}.M;
+                %elements{k} = mxe_addsharedmanifold(varD{k}.M);
             end
             %varM = mxe_productmanifold(elements);
             varM = mxe_product2manifold(elements);
