@@ -29,8 +29,8 @@ options.plotCost.axes = subplot(2,2,2);
 options.plotGradNorm.axes = subplot(2,2,4);
 
 % main options
-options.verbosity = 2;
-options.solver = 'lbfgs';
+options.verbosity = 1;
+options.solver = 'default';
 options.sgd.stepsize = 4;
 % options.crossVal = true;
 % options.crossVal.tolIter = 100;

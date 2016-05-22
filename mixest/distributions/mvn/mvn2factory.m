@@ -64,7 +64,7 @@ function D = mvn2factory(datadim)
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
-    sigmatM = spdffactory(datadim+1);
+    sigmatM = spdfactory(datadim+1);
     sigmatM = mxe_addsharedmanifold(sigmatM);
     %D.M = productmanifold(struct('sigmat', sigmatM));
     D.M = mxe_productmanifold(struct('sigmat', sigmatM));

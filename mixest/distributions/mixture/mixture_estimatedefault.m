@@ -124,6 +124,7 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
             
         
         if options.verbosity >= 2
+            options.verbosity
             fprintf('Log likelihood = %g , LL diff= %g \n', ll, ll_diff);
         end
 

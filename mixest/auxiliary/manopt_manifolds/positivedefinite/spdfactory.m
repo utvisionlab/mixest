@@ -154,33 +154,33 @@ M.transp = @transpvec;
     end
 
 % applying vector transpord and save a variable for applying fast version
-M.transpf = @transpvecf;
-    function [F,expconstruct,iexpconstruct] = transpvecf(X, Y, E)
+M.transpstore = @transpvecf;
+    function [expconstruct,iexpconstruct] = transpvecf(X, Y)
         if flag
             if riemTransp
                 expconstruct= fast_sqrtm(Y/X);
-                F = expconstruct*E*expconstruct';
-                if nargout > 2
+                %F = expconstruct*E*expconstruct';
+                if nargout > 1
                    iexpconstruct = inv(expconstruct); 
                 end
             else
                 % Identity parallel transport works for LBFGS
                 % There is also proof for the convergence
-                F = E;
-                if nargout > 1
+                %F = E;
+                if nargout > 0
                     expconstruct = eye(size(X,1));
                 end
-                if nargout > 2
+                if nargout > 1
                     iexpconstruct = eye(size(X,1));
                 end
             end
         else
             % identity parallel transport
-            F = E;
-            if nargout > 1
+            %F = E;
+            if nargout > 0
                 expconstruct = eye(size(X,1));
             end
-            if nargout > 2
+            if nargout > 1
                 iexpconstruct = eye(size(X,1));
             end
         end
@@ -193,7 +193,7 @@ M.itransp = @itranspvec;
     end
 
 % faster version of vector transport by storing some information
-M.transpF = @transpvecfast; 
+M.transpf = @transpvecfast; 
     function F = transpvecfast(expconstruct, E)
         if flag
             if riemTransp
@@ -207,7 +207,7 @@ M.transpF = @transpvecfast;
     end
     
 % faster version of inverse vector transport by storing some information
-M.itranspF = @itranspvecfast; 
+M.atranspf = @itranspvecfast; 
     function F = itranspvecfast(iexpconstruct, E)
         if flag
             if riemTransp

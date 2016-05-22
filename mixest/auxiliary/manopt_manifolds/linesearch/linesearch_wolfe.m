@@ -1,5 +1,5 @@
 function [stepsize newx storedb lsmem lsstats] = ...
-       linesearch_wolfe(problem, x, d, f0, df0, options, storedb, lsmem)
+       linesearch_wolfe(problem, x, d, f0, df0, options, storedb, lsmem, grad)
 % Adaptive line search algorithm (step size selection) for descent methods.
 %
 % function [stepsize newx storedb lsmem lsstats] = 
@@ -298,6 +298,9 @@ function [stepsize newx storedb lsmem lsstats] = ...
     lsmem.grad = new_grad;
     lsmem.f0 = f0;
     lsmem.df0 = df0;
+    lsmem.newd = newd;
+    % BUG: without d, new_alpha and store, it works fine
+    lsmem.transg = problem.M.transp(x, newx, grad, d, new_alpha, store); %
     lsmem.alpha = new_alpha;
     if debug
         ls_iter
@@ -318,9 +321,10 @@ function ilegal = is_illegal(x)
     ilegal = any(imag(x(:))) | any(isnan(x(:))) | any(isinf(x(:)));
 end
 
-function  new_df = calcDf(M, x, newx, d, new_grad, new_d)
+function  [new_df, new_d] = calcDf(M, x, newx, d, new_grad, new_d)
     if isempty(new_d)
         new_d = M.transp(x, newx, d);
+        pause
     end
     new_df = M.inner(newx, new_d, new_grad);
 end

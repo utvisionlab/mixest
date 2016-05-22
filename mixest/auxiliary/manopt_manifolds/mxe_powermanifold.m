@@ -1,4 +1,4 @@
-function Mn = mxe_poweraddmanifold(M, n)
+function Mn = mxe_powermanifold(M, n)
 % 
 %
         
@@ -196,7 +196,7 @@ function Mn = mxe_poweraddmanifold(M, n)
         if nargin == 6 && nargout == 1
             for i = 1 : n
                 e{i} = M.transp(x1{i}, ...
-                    x2{i}, e{i}, store{i});
+                    x2{i}, e{i}, u{i}, t, store{i});
             end
         end
         if nargin == 5 && nargout == 2
@@ -214,7 +214,7 @@ function Mn = mxe_poweraddmanifold(M, n)
         if nargin == 6 && nargout == 2
             for i = 1 : n
                 [e{i}, store{i}] = M.transp(x1{i}, ...
-                    x2{i}, e{i}, store{i});
+                    x2{i}, e{i}, u{i}, t, store{i});
             end
         end
     end
@@ -249,15 +249,46 @@ function Mn = mxe_poweraddmanifold(M, n)
             end
         end
     end
-    
+
+    Mn.transpdiffE = @transpdiffE;
+    function [e, store] = transpdiffE(x, u, e, t, store)
+        if nargin < 3
+            t = 1.0;
+        end
+        if nargin < 5 && nargout == 1
+            for i = 1 : n
+                [e{i}] = M.transpdiffE(x{i}, ...
+                    u{i}, e{i}, t);
+            end
+        end
+        if nargin == 5 && nargout == 1
+            for i = 1 : n
+                [e{i}] = M.transpdiffE(x{i}, ...
+                    u{i}, e{i}, t, store{i});
+            end
+        end
+        if nargin < 5 && nargout == 2
+            for i = 1 : n
+                [e{i}, store{i}] = M.transpdiffE(x{i}, ...
+                    u{i}, e{i}, t);
+            end
+        end
+        if nargin == 5 && nargout == 2
+            for i = 1 : n
+                [e{i}, store{i}] = M.transpdiffE(x{i}, ...
+                    u{i}, e{i}, t, store{i});
+            end
+        end
+    end
+
     Mn.transpstore = @transpstore;
-    function [e, ec, iec] = transpstore(x, y, e)
+    function [ec, iec] = transpstore(x, y)
         ec = cell(n, 1);
         iec = cell(n, 1);
         for i = 1 : n
-            [e{i}, ec{i}, iec{i}]  = ...
+            [ec{i}, iec{i}]  = ...
                 M.transpstore(x{i}, ...
-                y{i}, e{i});
+                y{i});
         end
     end   
     

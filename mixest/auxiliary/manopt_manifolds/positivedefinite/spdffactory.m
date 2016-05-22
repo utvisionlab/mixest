@@ -120,30 +120,52 @@ M.retrtransp = @retractiontranspvec;
         F = E + t * store.symUinvXmulU;
     end
 
+M.transpdiffE = @transpvecdiffE;
+    function [F, store] = transpvecdiffE(X, U, E, t, store)
+        % retraction at X in direction of U with step-length t
+        % vector transport of E into the new point
+        if nargin < 4 || isempty(t)
+            t = 1.0;
+        end   
+        if nargin < 5
+            store = struct;
+        end
+        if ~isfield(store, 'UinvXmulU') || ~isfield(store, 'symEinvXmulU')
+            if ~isfield(store, 'invXmulU')
+                invXmulU = X\U;
+            else
+                invXmulU = store.invXmulU;
+            end
+        end
+        store.symUinvXmulU = sym(E * invXmulU);
+        F = E + t * store.symUinvXmulU;
+    end
+
 % vector transport in line search all arguments except t remains
+% diffE is not necessary for this it is assumed that different E is used
 M.transp = @transpvec;   
     function [F, store] = transpvec(X, Y, E, U, t, store)
         if nargin < 5
             store = struct;
         end
-        if ~isfield(store, 'symEinvXmulU')
-            if nargin > 3 %~isempty(U)
-                if ~isfield(store, 'invXmulU')
-                    store.invXmulU = X\U;
-                end
-                store.symUinvXmulU = sym(E * store.invXmulU);
+        %if ~isfield(store, 'symEinvXmulU')
+        if nargin > 3 %~isempty(U)
+            if ~isfield(store, 'invXmulU')
+                store.invXmulU = X\U;
+            end
+            store.symUinvXmulU = sym(E * store.invXmulU);
+            F = E + t * store.symUinvXmulU;
+        else
+            if nargout > 1
+                store.symUinvXmulU = sym((sqrtm(2*Y/X-eye(n))-eye(n))*E);
                 F = E + t * store.symUinvXmulU;
             else
-                if nargout > 1
-                    store.symUinvXmulU = sym((sqrtm(2*Y/X-eye(n))-eye(n))*E);
-                    F = E + t * store.symUinvXmulU;
-                else
-                    F = sym(sqrtm(2*Y/X-eye(n))*E);
-                end
+                F = sym(sqrtm(2*Y/X-eye(n))*E);
             end
-        else
-            F = E + t * store.symUinvXmulU;
         end
+        %else
+        %    F = E + t * store.symUinvXmulU;
+        %end
     end   
 
 M.exp = @exponential;
@@ -191,9 +213,9 @@ end
 %   of vector transport and its adjoint
 % In the fast version only stored variable is given
 M.transpstore = @transpvecstore;
-    function [F, expconstruct, iexpconstruct] = transpvecstore(X, Y, E)
+    function [expconstruct, iexpconstruct] = transpvecstore(X, Y)
         expconstruct= fast_sqrtm(Y/X);
-        F = expconstruct * E * expconstruct';
+        %F = expconstruct * E * expconstruct';
         iexpconstruct = inv(expconstruct);
     end
 

@@ -36,12 +36,12 @@ retr2 = @retraction;
 % adding store to the last column of vector transport
 transp = M.transp;
 transp2 = @transpvec;
-    function [varargout, store] = transpvec(varargin)
+    function [matout, store] = transpvec(X, Y, E, varargin)
         if nargin > 5
-            store = varargin{6};
+            store = varargin{3};
         end
-        varargin = varargin(1:3);
-        varargout = transp(varargin{:});
+        %varargin = varargin(1:3);
+        matout = transp(X, Y, E);
     end
     if nargin(M.transp) == 3
         M.transp = transp2;
@@ -63,13 +63,28 @@ if ~isfield(M, 'retrtransp')
     M.retrtransp = retrtransp;
 end
 
+% adding operation of retraction and transp together
+transpdiffE = @transpvecdifferentE;
+    function [F, store] = transpvecdifferentE(X, U, E, t, store)
+        if nargin < 5
+            store = struct;
+        end
+        if nargin < 4
+            t = 1;
+        end
+        [Y, store] = M.retr(X, U, t, store);
+        [F, store] = M.transp(X, Y, E, U, t, store);
+    end
+if ~isfield(M, 'transpdiffE')
+    M.transpdiffE = transpdiffE;
+end
+
 % adding fast version of transpvec
 transpstore = @transpvecstore;
-    function [F, expconstruct, iexpconstruct] = transpvecstore(X, Y, E)
+    function [expconstruct, iexpconstruct] = transpvecstore(X, Y)
         expconstruct.X = X;
         expconstruct.Y = Y;
         iexpconstruct = expconstruct;
-        F = M.transp(X, Y, E);
     end
 if ~isfield(M, 'transpstore')
     M.transpstore = transpstore;

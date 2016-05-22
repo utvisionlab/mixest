@@ -1,4 +1,4 @@
-function M = mxe_mxeproductaddmanifold(elements)
+function M = mxe_product2manifold(elements)
 % 
 %
         
@@ -220,7 +220,7 @@ function M = mxe_mxeproductaddmanifold(elements)
         if nargin == 6 && nargout == 1
             for i = 1 : nelems
                 v.(elems{i}) = elements{i}.transp(x1.(elems{i}), ...
-                    x2.(elems{i}), e.(elems{i}), store.(elems{i}));
+                    x2.(elems{i}), e.(elems{i}), u.(elems{i}), t, store.(elems{i}));
             end
         end
         if nargin == 5 && nargout == 2
@@ -238,7 +238,7 @@ function M = mxe_mxeproductaddmanifold(elements)
         if nargin == 6 && nargout == 2
             for i = 1 : nelems
                 [v.(elems{i}), store.(elems{i})] = elements{i}.transp(x1.(elems{i}), ...
-                    x2.(elems{i}), e.(elems{i}), store.(elems{i}));
+                    x2.(elems{i}), e.(elems{i}), u.(elems{i}), t, store.(elems{i}));
             end
         end
     end
@@ -273,13 +273,44 @@ function M = mxe_mxeproductaddmanifold(elements)
             end
         end
     end
-    
+
+    M.transpdiffE = @transpdiffE;
+    function [v, store] = transpdiffE(x, u, e, t, store)
+        if nargin < 3
+            t = 1.0;
+        end
+        if nargin < 5 && nargout == 1
+            for i = 1 : nelems
+                [v.(elems{i})] = elements{i}.transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t);
+            end
+        end
+        if nargin == 5 && nargout == 1
+            for i = 1 : nelems
+                [v.(elems{i})] = elements{i}.transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t, store.(elems{i}));
+            end
+        end
+        if nargin < 5 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements{i}.transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t);
+            end
+        end
+        if nargin == 5 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements{i}.transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t, store.(elems{i}));
+            end
+        end
+    end
+
     M.transpstore = @transpstore;
-    function [v, ec, iec] = transpstore(x, y, e)
+    function [ec, iec] = transpstore(x, y)
         for i = 1 : nelems
-            [v.(elems{i}), ec.(elems{i}), iec.(elems{i})]  = ...
+            [ec.(elems{i}), iec.(elems{i})]  = ...
                 elements{i}.transpstore(x.(elems{i}), ...
-                y.(elems{i}), e.(elems{i}));
+                y.(elems{i}));
         end
     end   
     
