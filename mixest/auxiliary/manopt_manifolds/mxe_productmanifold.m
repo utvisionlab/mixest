@@ -39,6 +39,13 @@ function M = mxe_productmanifold(elements)
     elems = fieldnames(elements);
     nelems = numel(elems);
     
+    for i = 1 : nelems
+        if ~isfield(elements.(elems{i}),'retrtransp') || ...
+                ~isfield(elements.(elems{i}), 'transpstore') 
+            elements.(elems{i}) = mxe_addsharedmanifold(elements.(elems{i}));
+        end
+    end
+    
     assert(nelems >= 1, ...
            'elements must be a structure with at least one field.');
     

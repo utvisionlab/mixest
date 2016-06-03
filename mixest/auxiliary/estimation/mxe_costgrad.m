@@ -37,7 +37,7 @@ function [cost, grad] = mxe_costgrad(D, theta, data, options)
     index = data.index;
     N = data.size;
         
-    if options.penalize
+    if options.penalize && ~isempty(options.penalizertheta)
         % Calculating the penalizer cost and gradient
         [costPen, store] = D.penalizercost(theta, options.penalizertheta, store);
         if nargout > 1
@@ -109,7 +109,7 @@ function [cost, grad] = mxe_costgrad(D, theta, data, options)
         end
     end
 
-    if options.penalize
+    if options.penalize && ~isempty(options.penalizertheta)
         ll = ll + costPen;
         if nargout > 1
             egrad = D.sumparam(egrad, egradPen);

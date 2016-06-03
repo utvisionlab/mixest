@@ -116,7 +116,7 @@ function D = ecdfactory(datadim, radialD, fixing)
         if ~fixed_sigma
             elements.sigma = spdfactory(datadim);
         end
-        M = productmanifold(elements);
+        M = mxe_productmanifold(elements);
     end
 
 %% |dim|

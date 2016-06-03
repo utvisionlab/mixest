@@ -2,9 +2,12 @@ function Mn = mxe_powermanifold(M, n)
 % 
 %
         
+    if ~isfield(M,'retrtransp') || ...
+                ~isfield(M, 'transpstore') 
+            M = mxe_addsharedmanifold(M);
+    end     
         
-        
-   assert(n >= 1, 'n must be an integer larger than or equal to 1.');
+    assert(n >= 1, 'n must be an integer larger than or equal to 1.');
     
     Mn.name = @() sprintf('[%s]^%d', M.name(), n);
     

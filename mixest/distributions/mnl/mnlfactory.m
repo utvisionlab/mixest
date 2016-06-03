@@ -51,7 +51,7 @@ function D = mnlfactory(datadim, num)
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
-    D.M = productmanifold(struct('W', euclideanfactory(num-1, datadim+1)));
+    D.M = mxe_productmanifold(struct('W', euclideanfactory(num-1, datadim+1)));
 
 %% |num|
 % Number of components

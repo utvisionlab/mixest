@@ -76,7 +76,7 @@ function D = vmffactory(datadim)
 
     muM = spherefactory(datadim);
     kappaM = positivefactory();
-    D.M = productmanifold(struct('mu', muM, 'kappa', kappaM));
+    D.M = mxe_productmanifold(struct('mu', muM, 'kappa', kappaM));
 
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.

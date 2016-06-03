@@ -71,17 +71,17 @@ function  D = factorialfactory(ComponentD, num)
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
     if homogeneous
-        ComponentsM = powermanifold(ComponentD.M, num);
+        ComponentsM = mxe_powermanifold(ComponentD.M, num);
     else
         elements = cell(num, 1);
         for k = 1:num %#ok<FXUP>
             elements{k} = Components{k}.M;
         end
-        ComponentsM = mxe_productmanifold(elements);
+        ComponentsM = mxe_product2manifold(elements);
     end
     W = obliquefactory(num, num, true);
     % W = euclideanfactory(num, num);
-    D.M = productmanifold(struct('D', ComponentsM, 'W', W));
+    D.M = mxe_productmanifold(struct('D', ComponentsM, 'W', W));
     
     % from here on use Components{k} to access k'th component irrespective
     % to the mixture being homogeneous or heterogeneous.

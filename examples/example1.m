@@ -30,7 +30,7 @@ options.plotGradNorm.axes = subplot(2,2,4);
 
 % main options
 options.verbosity = 1;
-options.solver = 'default';
+options.solver = 'lbfgs';
 options.sgd.stepsize = 4;
 % options.crossVal = true;
 % options.crossVal.tolIter = 100;
