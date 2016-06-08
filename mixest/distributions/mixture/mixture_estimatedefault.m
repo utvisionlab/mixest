@@ -124,6 +124,7 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
             
         
         if options.verbosity >= 2
+            options.verbosity
             fprintf('Log likelihood = %g , LL diff= %g \n', ll, ll_diff);
         end
 
@@ -165,14 +166,14 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
             comp_options = options; 
             comp_options.solver = 'default';
             comp_options.verbosity = 0;
-            comp_options.maxiter = 1;
+            comp_options.maxiter = 10;
             comp_options.miniter = 0;
             comp_options.previnfo = [];
             comp_options.crossval.enabled = false;
             Component = D.component(k);
             if ~isfield(Component,'estimatedefault');
                 comp_options.solver = 'cg';
-                comp_options.maxiter = 10;
+                comp_options.maxiter = 100;
             end
             if options.penalize
                 comp_options.penalizertheta = options.penalizertheta.D{k};

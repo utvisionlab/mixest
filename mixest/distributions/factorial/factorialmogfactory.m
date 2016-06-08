@@ -59,7 +59,7 @@ function  D = factorialmogfactory(numCpt, num)
     mu = euclideanfactory(numCpt, num);
     sd = euclideanfactory(numCpt, num);
     p = productsimplexfactory(numCpt, num);
-    D.M = productmanifold(struct('p', p, 'mu', mu, 'sd', sd, 'W', W));
+    D.M = mxe_productmanifold(struct('p', p, 'mu', mu, 'sd', sd, 'W', W));
     
     % from here on use Components{k} to access k'th component irrespective
     % to the mixture being homogeneous or heterogeneous.

@@ -171,7 +171,7 @@ while true
     
     % Execute line search
     [stepsize newx storedb lsmem lsstats] = options.linesearch(problem, ...
-        x, desc_dir, cost, df0, options, storedb, lsmem);
+        x, desc_dir, cost, df0, options, storedb, lsmem, grad);
 
     % Compute the new cost-related quantities for x
     if isfield(lsmem,'grad')
@@ -188,22 +188,29 @@ while true
     storedb = purgeStoredb(storedb, options.storedepth);
     
     % Using previous and new information to update
-    if isfield(problem.M,'transpf')
-        [gradC, Expc, Expci] = problem.M.transpf(x, newx, grad);
+    % !!! This is important that parallel transport in this part should be
+    %   associated with the retraction used in line-search (Ring&Wirth)
+    if isfield(lsmem,'transg')
+        gradC = lsmem.transg;
+        %lsmem.newd = newd;
+        [Expc, Expci] = problem.M.transpstore(x, newx);
     else
         gradC = problem.M.transp(x, newx, grad);
+        if isfield(problem.M,'transpf')
+            [Expc, Expci] = problem.M.transpstore(x, newx);
+        end
     end
+    %Expc.D{1}.sigmat
     grad_diff = problem.M.lincomb(newx, 1, newgrad, -1, gradC);
-    
-    % Multiplying the stepsize in descent direction
-    desc_dir_step = problem.M.lincomb(x, stepsize, desc_dir);
-
-        
+         
     
     % Parallel transport descent to the new point
-    if isfield(problem.M,'transpf')
-        desc_dir_step = problem.M.transpF(Expc, desc_dir_step);
+    if isfield(lsmem,'newd')
+        desc_dir_step = problem.M.lincomb(newx, stepsize, lsmem.newd);
+        %problem.M.transpf(Expc, desc_dir_step);
     else
+        % Multiplying the stepsize in descent direction
+        desc_dir_step = problem.M.lincomb(x, stepsize, desc_dir);
         desc_dir_step = problem.M.transp(x, newx, desc_dir_step);
     end
     % disp('Calculating Updates');

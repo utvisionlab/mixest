@@ -1542,7 +1542,7 @@ function D = mixturefactory(ComponentD, num)
         if ~isempty(weight)
             component_weights = bsxfun(@times, component_weights, weight);
         end
-        % low_memory = true; This Line makes the speed 2 times slower
+        low_memory = true;
         if low_memory
             store = rmfield(store,'hX');
             %store = rmfield(store,'llik');

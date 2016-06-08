@@ -74,7 +74,11 @@ function options = mxe_options(options, extra_defaults)
         'sgd', struct(...
             'batchnum', 100, ... Number of batches in SGD
             'epoch', 50, ... Stop as soon as number of epochs reachs epoc
-            'stepsize', 0.1 ... step size in SGD
+            'stepsize', 0.1, ... step size in SGD
+            'diminishC', 1000, ... diminishing constant (set to inf if no diminish is used)
+            'momentum', 0, .... Using momentum
+            'svrg', false, ... Using svrg method
+            'euclidbase', true ... Base SVRG and Momentum of Euclidean way
             ) ...
         ... See also mxe_inneroptions
         );

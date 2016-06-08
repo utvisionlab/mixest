@@ -1,56 +1,70 @@
-%% |mxe_productmanifold|
-% This function presents an alternative to the |productmanifold| function
-% in the Manopt toolbox, using cell arrays instead of structures.
-%
-% *Syntax*
-%
-%   M = mxe_productmanifold(elements)
-%
-
-% Copyright 2015 Reshad Hosseini and Mohamadreza Mash'al
-% This file is part of MixEst: visionlab.ut.ac.ir/mixest
-%
-% Original author: Reshad Hosseini
-%
-% Change log: 
-%
-
 function M = mxe_productmanifold(elements)
-% This function presents an alternative to the productmanifold function in
-% the Manopt toolbox, using cell arrays instead of structures.
+% Returns a structure describing a product manifold M = M1 x M2 x ... x Mn.
 %
-% Input:
-% elements: a cell array of manifold structures.
+% function M = productmanifold(elements)
 %
-% Output:
-% M: a manifold structure representing the Cartesian product of the
-% manifolds given in elements, with points and vectors represented as cell
-% arrays.
+% Input: an elements structure such that each field contains a manifold
+% structure.
+% 
+% Output: a manifold structure M representing the manifold obtained by
+% taking the Cartesian product of the manifolds described in the elements
+% structure, with the metric obtainded by element-wise extension. Points
+% and vectors are stored as structures with the same fieldnames as in
+% elements.
+%
+% Example:
+% M = productmanifold(struct('X', spherefactory(3), 'Y', spherefactory(4)))
+% disp(M.name());
+% x = M.rand()
+%
+% Points of M = S^2 x S^3 are represented as structures with two fields, X
+% and Y. The values associated to X are points of S^2, and likewise points
+% of S^3 for the field Y. Tangent vectors are also represented as
+% structures with two corresponding fields X and Y.
+% 
+% See also: powermanifold
 
-
-    %elems = fieldnames(elements);
-    nelems = numel(elements);
-
+% This file is part of Manopt: www.manopt.org.
+% Original author: Nicolas Boumal, Dec. 30, 2012.
+% Contributors: 
+% Change log: 
+%   NB, July 4, 2013: Added support for vec, mat, tangent.
+%                     Added support for egrad2rgrad and ehess2rhess.
+%                     Modified hash function to make hash strings shorter.
+%   RH, March 5, 2016: Adding transpf and other modification
+%
+        
+        
+        
+    elems = fieldnames(elements);
+    nelems = numel(elems);
+    
+    for i = 1 : nelems
+        if ~isfield(elements.(elems{i}),'retrtransp') || ...
+                ~isfield(elements.(elems{i}), 'transpstore') 
+            elements.(elems{i}) = mxe_addsharedmanifold(elements.(elems{i}));
+        end
+    end
+    
     assert(nelems >= 1, ...
            'elements must be a structure with at least one field.');
     
     M.name = @name;
     function str = name()
-        str = 'Product manifold: [';
-        
-        for i = 1 : nelems-1
-            str = [str sprintf(' %s x', ...
-                   elements{i}.name())]; %#ok<AGROW>
+        str = 'Product manifold: ';
+        str = [str sprintf('[%s: %s]', ...
+                           elems{1}, elements.(elems{1}).name())];
+        for i = 2 : nelems
+            str = [str sprintf(' x [%s: %s]', ...
+                   elems{i}, elements.(elems{i}).name())]; %#ok<AGROW>
         end
-        str = [str sprintf(' %s ] ', ...
-                   elements{end}.name())];
     end
     
     M.dim = @dim;
     function d = dim()
         d = 0;
         for i = 1 : nelems
-            d = d + elements{i}.dim();
+            d = d + elements.(elems{i}).dim();
         end
     end
     
@@ -58,8 +72,8 @@ function M = mxe_productmanifold(elements)
     function val = inner(x, u, v)
         val = 0;
         for i = 1 : nelems
-            val = val + elements{i}.inner(x{i}, ...
-                                               u{i}, v{i});
+            val = val + elements.(elems{i}).inner(x.(elems{i}), ...
+                                               u.(elems{i}), v.(elems{i}));
         end
     end
 
@@ -69,8 +83,8 @@ function M = mxe_productmanifold(elements)
     function d = dist(x, y)
         sqd = 0;
         for i = 1 : nelems
-            sqd = sqd + elements{i}.dist(x{i}, ...
-                                                 y{i})^2;
+            sqd = sqd + elements.(elems{i}).dist(x.(elems{i}), ...
+                                                 y.(elems{i}))^2;
         end
         d = sqrt(sqd);
     end
@@ -79,39 +93,36 @@ function M = mxe_productmanifold(elements)
     function d = typicaldist
         sqd = 0;
         for i = 1 : nelems
-            sqd = sqd + elements{i}.typicaldist()^2;
+            sqd = sqd + elements.(elems{i}).typicaldist()^2;
         end
         d = sqrt(sqd);
     end
 
     M.proj = @proj;
     function v = proj(x, u)
-        v = cell(nelems, 1);
         for i = 1 : nelems
-            v{i} = elements{i}.proj(x{i}, ...
-                                                    u{i});
+            v.(elems{i}) = elements.(elems{i}).proj(x.(elems{i}), ...
+                                                    u.(elems{i}));
         end
     end
 
     M.tangent = @tangent;
     function v = tangent(x, u)
-        v = cell(nelems, 1);
         for i = 1 : nelems
-            v{i} = elements{i}.tangent(x{i}, ...
-                                                       u{i});
+            v.(elems{i}) = elements.(elems{i}).tangent(x.(elems{i}), ...
+                                                       u.(elems{i}));
         end
     end
 
     M.tangent2ambient = @tangent2ambient;
     function v = tangent2ambient(x, u)
-        v = cell(nelems, 1);
         for i = 1 : nelems
-            if isfield(elements{i}, 'tangent2ambient')
-                v{i} = ...
-                    elements{i}.tangent2ambient( ...
-                                               x{i}, u{i});
+            if isfield(elements.(elems{i}), 'tangent2ambient')
+                v.(elems{i}) = ...
+                    elements.(elems{i}).tangent2ambient( ...
+                                               x.(elems{i}), u.(elems{i}));
             else
-                v{i} = u{i};
+                v.(elems{i}) = u.(elems{i});
             end
         end
     end
@@ -119,16 +130,16 @@ function M = mxe_productmanifold(elements)
     M.egrad2rgrad = @egrad2rgrad;
     function g = egrad2rgrad(x, g)
         for i = 1 : nelems
-            g{i} = elements{i}.egrad2rgrad(...
-                                               x{i}, g{i});
+            g.(elems{i}) = elements.(elems{i}).egrad2rgrad(...
+                                               x.(elems{i}), g.(elems{i}));
         end
     end
 
     M.ehess2rhess = @ehess2rhess;
     function h = ehess2rhess(x, eg, eh, h)
         for i = 1 : nelems
-            h{i} = elements{i}.ehess2rhess(...
-                 x{i}, eg{i}, eh{i}, h{i});
+            h.(elems{i}) = elements.(elems{i}).ehess2rhess(...
+                 x.(elems{i}), eg.(elems{i}), eh.(elems{i}), h.(elems{i}));
         end
     end
     
@@ -137,31 +148,48 @@ function M = mxe_productmanifold(elements)
         if nargin < 3
             t = 1.0;
         end
-        y = cell(nelems, 1);
         for i = 1 : nelems
-            y{i} = elements{i}.exp(x{i}, ...
-                                                   u{i}, t);
+            y.(elems{i}) = elements.(elems{i}).exp(x.(elems{i}), ...
+                                                   u.(elems{i}), t);
         end
     end
     
     M.retr = @retr;
-    function y = retr(x, u, t)
+    function [y, store] = retr(x, u, t, store)
         if nargin < 3
             t = 1.0;
         end
-        y = cell(nelems, 1);
-        for i = 1 : nelems
-            y{i} = elements{i}.retr(x{i}, ...
-                                                    u{i}, t);
+        if nargin < 4 && nargout == 1
+            for i = 1 : nelems
+                y.(elems{i}) = elements.(elems{i}).retr(x.(elems{i}), ...
+                    u.(elems{i}), t);
+            end
+        end
+        if nargin == 4 && nargout == 1
+            for i = 1 : nelems
+                y.(elems{i}) = elements.(elems{i}).retr(x.(elems{i}), ...
+                    u.(elems{i}), t, store.(elems{i}));
+            end
+        end
+        if nargin < 4 && nargout == 2
+            for i = 1 : nelems
+                [y.(elems{i}), store.(elems{i})] = elements.(elems{i}).retr(x.(elems{i}), ...
+                    u.(elems{i}), t);
+            end
+        end
+        if nargin == 4 && nargout == 2
+            for i = 1 : nelems
+                [y.(elems{i}), store.(elems{i})] = elements.(elems{i}).retr(x.(elems{i}), ...
+                    u.(elems{i}), t, store.(elems{i}));
+            end
         end
     end
     
     M.log = @log;
     function u = log(x1, x2)
-        u = cell(nelems, 1);
         for i = 1 : nelems
-            u{i} = elements{i}.log(x1{i}, ...
-                                                   x2{i});
+            u.(elems{i}) = elements.(elems{i}).log(x1.(elems{i}), ...
+                                                   x2.(elems{i}));
         end
     end
 
@@ -169,7 +197,7 @@ function M = mxe_productmanifold(elements)
     function str = hash(x)
         str = '';
         for i = 1 : nelems
-            str = [str elements{i}.hash(x{i})]; %#ok<AGROW>
+            str = [str elements.(elems{i}).hash(x.(elems{i}))]; %#ok<AGROW>
         end
         str = ['z' hashmd5(str)];
     end
@@ -177,16 +205,14 @@ function M = mxe_productmanifold(elements)
     M.lincomb = @lincomb;
     function v = lincomb(x, a1, u1, a2, u2)
         if nargin == 3
-            v = cell(nelems, 1);
             for i = 1 : nelems
-                v{i} = elements{i}.lincomb(x{i}, ...
-                                                        a1, u1{i});
+                v.(elems{i}) = elements.(elems{i}).lincomb(x.(elems{i}), ...
+                                                        a1, u1.(elems{i}));
             end
         elseif nargin == 5
-            v = cell(nelems, 1);
             for i = 1 : nelems
-                v{i} = elements{i}.lincomb(x{i}, ...
-                                     a1, u1{i}, a2, u2{i});
+                v.(elems{i}) = elements.(elems{i}).lincomb(x.(elems{i}), ...
+                                     a1, u1.(elems{i}), a2, u2.(elems{i}));
             end
         else
             error('Bad usage of productmanifold.lincomb');
@@ -195,44 +221,158 @@ function M = mxe_productmanifold(elements)
 
     M.rand = @rand;
     function x = rand()
-        x = cell(nelems, 1);
         for i = 1 : nelems
-            x{i} = elements{i}.rand();
+            x.(elems{i}) = elements.(elems{i}).rand();
         end
     end
 
     M.randvec = @randvec;
     function u = randvec(x)
-        u = cell(nelems, 1);
         for i = 1 : nelems
-            u{i} = elements{i}.randvec(x{i});
+            u.(elems{i}) = elements.(elems{i}).randvec(x.(elems{i}));
         end
         u = M.lincomb(x, 1/sqrt(nelems), u);
     end
 
     M.zerovec = @zerovec;
     function u = zerovec(x)
-        u = cell(nelems, 1);
         for i = 1 : nelems
-            u{i} = elements{i}.zerovec(x{i});
+            u.(elems{i}) = elements.(elems{i}).zerovec(x.(elems{i}));
         end
     end
 
     M.transp = @transp;
-    function v = transp(x1, x2, u)
-        v = cell(nelems, 1);
-        for i = 1 : nelems
-            v{i} = elements{i}.transp(x1{i}, ...
-                                              x2{i}, u{i});
+    function [v, store] = transp(x1, x2, e, u, t, store)
+        if nargin == 5 && nargout == 1
+            for i = 1 : nelems
+                v.(elems{i}) = elements.(elems{i}).transp(x1.(elems{i}), ...
+                    x2.(elems{i}), e.(elems{i}), u.(elems{i}), t);
+            end
+        end
+        if nargin == 3 && nargout == 1
+            for i = 1 : nelems
+                v.(elems{i}) = elements.(elems{i}).transp(x1.(elems{i}), ...
+                    x2.(elems{i}), e.(elems{i}));
+            end
+        end
+        if nargin == 6 && nargout == 1
+            for i = 1 : nelems
+                v.(elems{i}) = elements.(elems{i}).transp(x1.(elems{i}), ...
+                    x2.(elems{i}), e.(elems{i}), u.(elems{i}), t, store.(elems{i}));
+            end
+        end
+        if nargin == 5 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements.(elems{i}).transp(x1.(elems{i}), ...
+                    x2.(elems{i}), e.(elems{i}), u.(elems{i}), t);
+            end
+        end
+        if nargin == 3 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements.(elems{i}).transp(x1.(elems{i}), ...
+                    x2.(elems{i}), e.(elems{i}));
+            end
+        end
+        if nargin == 6 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements.(elems{i}).transp(x1.(elems{i}), ...
+                    x2.(elems{i}), e.(elems{i}), u.(elems{i}), t, store.(elems{i}));
+            end
         end
     end
 
+    M.retrtransp = @retrtransp;
+    function [y, v, store] = retrtransp(x, u, e, t, store)
+        if nargin < 3
+            t = 1.0;
+        end
+        if nargin < 5 && nargout == 2
+            for i = 1 : nelems
+                [y.(elems{i}), v.(elems{i})] = elements.(elems{i}).retrtransp(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t);
+            end
+        end
+        if nargin == 5 && nargout == 2
+            for i = 1 : nelems
+                [y.(elems{i}), v.(elems{i})] = elements.(elems{i}).retrtransp(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t, store.(elems{i}));
+            end
+        end
+        if nargin < 5 && nargout == 3
+            for i = 1 : nelems
+                [y.(elems{i}), v.(elems{i}), store.(elems{i})] = elements.(elems{i}).retrtransp(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t);
+            end
+        end
+        if nargin == 5 && nargout == 3
+            for i = 1 : nelems
+                [y.(elems{i}), v.(elems{i}), store.(elems{i})] = elements.(elems{i}).retrtransp(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t, store.(elems{i}));
+            end
+        end
+    end
+ 
+    M.transpdiffE = @transpdiffE;
+    function [v, store] = transpdiffE(x, u, e, t, store)
+        if nargin < 3
+            t = 1.0;
+        end
+        if nargin < 5 && nargout == 1
+            for i = 1 : nelems
+                [v.(elems{i})] = elements.(elems{i}).transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t);
+            end
+        end
+        if nargin == 5 && nargout == 1
+            for i = 1 : nelems
+                [v.(elems{i})] = elements.(elems{i}).transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t, store.(elems{i}));
+            end
+        end
+        if nargin < 5 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements.(elems{i}).transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t);
+            end
+        end
+        if nargin == 5 && nargout == 2
+            for i = 1 : nelems
+                [v.(elems{i}), store.(elems{i})] = elements.(elems{i}).transpdiffE(x.(elems{i}), ...
+                    u.(elems{i}), e.(elems{i}), t, store.(elems{i}));
+            end
+        end
+    end
+
+    M.transpstore = @transpstore;
+    function [ec, iec] = transpstore(x, y)
+        for i = 1 : nelems
+            [ec.(elems{i}), iec.(elems{i})]  = ...
+                elements.(elems{i}).transpstore(x.(elems{i}), ...
+                y.(elems{i}));
+        end
+    end   
+    
+    M.transpf = @transpvecfast;
+    function y = transpvecfast(x, ec)
+        for i = 1 : nelems
+            y.(elems{i}) = elements.(elems{i}).transpf(x.(elems{i}), ...
+                                                        ec.(elems{i}));
+        end
+    end
+    
+    M.atranspf = @atranspvecfast;
+    function y = atranspvecfast(x, iec)
+        for i = 1 : nelems
+            y.(elems{i}) = elements.(elems{i}).atranspf(x.(elems{i}), ...
+                                                        iec.(elems{i}));
+        end
+    end
+    
     M.pairmean = @pairmean;
     function y = pairmean(x1, x2)
-        y = cell(nelems, 1);
         for i = 1 : nelems
-            y{i} = elements{i}.pairmean(x1{i}, ...
-                                                        x2{i});
+            y.(elems{i}) = elements.(elems{i}).pairmean(x1.(elems{i}), ...
+                                                        x2.(elems{i}));
         end
     end
 
@@ -243,10 +383,11 @@ function M = mxe_productmanifold(elements)
     vec_available = true;
     vec_lens = zeros(nelems, 1);
     for ii = 1 : nelems
-        if isfield(elements{ii}, 'vec')
-            rand_x = elements{ii}.rand();
-            zero_u = elements{ii}.zerovec(rand_x);
-            vec_lens(ii) = length(elements{ii}.vec(rand_x, zero_u));
+        Mi = elements.(elems{ii});
+        if isfield(Mi, 'vec')
+            rand_x = Mi.rand();
+            zero_u = Mi.zerovec(rand_x);
+            vec_lens(ii) = length(Mi.vec(rand_x, zero_u));
         else
             vec_available = false;
             break;
@@ -263,8 +404,8 @@ function M = mxe_productmanifold(elements)
         u_vec = zeros(vec_pos(end)-1, 1);
         for i = 1 : nelems
             range = vec_pos(i) : (vec_pos(i+1)-1);
-            u_vec(range) = elements{i}.vec(x{i}, ...
-                                                   u_mat{i});
+            u_vec(range) = elements.(elems{i}).vec(x.(elems{i}), ...
+                                                   u_mat.(elems{i}));
         end
     end
 
@@ -272,15 +413,15 @@ function M = mxe_productmanifold(elements)
         u_mat = struct();
         for i = 1 : nelems
             range = vec_pos(i) : (vec_pos(i+1)-1);
-            u_mat{i} = elements{i}.mat(x{i}, ...
+            u_mat.(elems{i}) = elements.(elems{i}).mat(x.(elems{i}), ...
                                                        u_vec(range));
         end
     end
 
     vecmatareisometries = true;
     for ii = 1 : nelems
-        if ~isfield(elements{ii}, 'vecmatareisometries') || ...
-           ~elements{ii}.vecmatareisometries()
+        if ~isfield(elements.(elems{ii}), 'vecmatareisometries') || ...
+           ~elements.(elems{ii}).vecmatareisometries()
             vecmatareisometries = false;
             break;
         end

@@ -86,13 +86,13 @@ function D = gaussianizationfactory(LayerD, num)
 
     % Note: manifold and parameters are defined only on the variable layers
     if homogeneous
-        D.M = powermanifold(LayerD.M, num);
+        D.M = mxe_powermanifold(LayerD.M, num);
     else
         elements = cell(num, 1);
         for it = 1:num
             elements{it} = Layers{it}.M;
         end
-        D.M = mxe_productmanifold(elements);
+        D.M = mxe_product2manifold(elements);
     end
 
 

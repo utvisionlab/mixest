@@ -56,46 +56,129 @@ function [x cost info] = sgd(problem, x, options)
     % Create a store database
     storedb = struct();
 
-    timetic = tic();
+    %timetic = tic();
 
     % If no initial point x is given by the user, generate one at random.
     if ~exist('x', 'var') || isempty(x)
         x = problem.M.rand();
     end
 
-    if options.verbosity >= 2
-        warning('Verbosity 2 slows down the procedure');
-        fprintf(' epoch \t cost val\t grad. norm\n');
+    if options.verbosity >= 2 || options.sgd.svrg
+        if options.verbosity >= 2 && ~ options.sgd.svrg
+            warning('Verbosity 2 slows down the procedure');
+        end
+        [cost egrad storedb] = getEuclideanCostGrad(problem, x, storedb);
+        grad= problem.M.egrad2rgrad(x, egrad);
+        gradnorm = problem.M.norm(x, grad);
+        if options.sgd.svrg
+            base_x = x;
+            base_egrad = egrad;
+            base_grad = grad;
+        end
+        if options.verbosity >= 2
+            fprintf(' epoch \t cost val\t grad. norm\n');
+            fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
+        end
     end
 
+    epoch = 0; 
+    stats = savestats();
+    info(1) = stats;
+    info(min(10000, options.sgd.epoch+1)).iter = [];
+        
+    cost = nan;
     % Start iterating until stopping criterion triggers
     for epoch = 1:options.sgd.epoch
-
-        % Iteration counter (at any point, iter is the number of fully executed
-        % iterations so far)
-        iter = 0;
-
-        % Display iteration information
-        if options.verbosity >= 2
-            % Compute objective-related quantities for x
-            [cost grad storedb] = getCostGrad(problem, x, storedb);
-            gradnorm = problem.M.norm(x, grad);
-            fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
-        end
-
-        % Save stats in a struct array info, and preallocate
-        % (see http://people.csail.mit.edu/jskelly/blog/?x=entry:entry091030-033941)
-        stats = savestats();
-        info(epoch) = stats; %#ok<AGROW>
-        if epoch == 1
-            info(min(10000, options.sgd.epoch+1)).iter = [];
-        end
+        
         % Start timing this iteration
         timetic = tic();
 
+        for batchIndex = 1:options.sgd.batchnum
+            if mod(batchIndex,100) == 1
+                fprintf('.')
+            end
+            % Compute the new gradient-related quantities for x
+            egrad = problem.egradbatch(x, batchIndex);
+            
+            
+            if ~isinf(options.sgd.diminishC)
+                alpha = options.sgd.stepsize * (options.sgd.diminishC /...
+                    (options.sgd.diminishC + (epoch-1)*options.sgd.batchnum+batchIndex-1));
+            else
+                alpha = options.sgd.stepsize;
+            end
+            if options.sgd.momentum == 0 || (batchIndex == 1 && epoch == 1)
+                % Pick the descent direction as minus the gradient
+                desc_dir_euc = problem.D.scaleparam(-1*alpha, egrad);
+                desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
+            else
+                if options.sgd.euclidbase
+                    % Using Euclidean Gradient with momentum and then retr
+                    desc_dir_euc = problem.D.scaleparam(-1*alpha, egrad);
+                    desc_dir_euc_old = problem.D.scaleparam(options.sgd.momentum, desc_dir_euc_old);
+                    desc_dir_euc = problem.D.sumparam(desc_dir_euc, desc_dir_euc_old);
+                    desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
+                else
+                    % Concept of momentum makes sense in Riemmanian domain
+                    % Using the same direction for improvement
+                    grad = problem.M.egrad2rgrad(x, egrad);
+                    distp = problem.M.transp(xold, x, desc_dir_old);
+                    desc_dir = problem.M.lincomb(x, -1*alpha, grad, ...
+                        options.sgd.momentum, distp);
+                end
+            end
+            if options.sgd.svrg
+                if options.sgd.euclidbase
+                    % Concept of reducing variance of gradient
+                    % We observed it is better to do that on Euclidean domain
+                    % Than using Parallel transport in Riemmanian
+                    grad_svrg = problem.egradbatch(base_x, batchIndex);
+                    grad_svrg = problem.D.scaleparam(-1, grad_svrg);
+                    grad_svrg = problem.D.sumparam(base_egrad, grad_svrg);
+                    desc_dir_svrg = problem.D.scaleparam(-1*alpha, grad_svrg);
+                    desc_dir_euc = problem.D.sumparam(desc_dir_euc, desc_dir_svrg);
+                    desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
+                else
+                    % Different version using parallel transport Riem grad
+                    grad_svrg = problem.gradbatch(base_x, batchIndex);
+                    grad_svrg = problem.M.lincomb(base_x, 1, base_grad, -1, grad_svrg);
+                    desc_dir_svrg = problem.M.transp(base_x, x, grad_svrg);
+                    desc_dir = problem.M.lincomb(x, 1, desc_dir, ...
+                        -1*alpha, desc_dir_svrg);
+                end
+            end
+            xold = x;
+            desc_dir_old = desc_dir;
+            desc_dir_euc_old = desc_dir_euc;
+            x = problem.M.retr(x, desc_dir, 1); 
+            
+        end
+        timetoc = toc(timetic);
+        
+        % Display iteration information
+        if options.verbosity >= 2 || options.sgd.svrg
+            % Compute objective-related quantities for x
+            [cost egrad storedb] = getEuclideanCostGrad(problem, x, storedb);
+            grad = problem.M.egrad2rgrad(x, egrad);
+            gradnorm = problem.M.norm(x, grad);
+            if options.sgd.svrg
+                base_x = x;
+                base_egrad = egrad;
+                base_grad = grad;
+            end
+            if options.verbosity >= 2
+                fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
+            end
+        end
+        
+        % Save stats in a struct array info, and preallocate
+        % (see http://people.csail.mit.edu/jskelly/blog/?x=entry:entry091030-033941)
+        stats = savestats();
+        info(epoch+1) = stats; %#ok<AGROW>
+        
         % Run standard stopping criterion checks
         [stop reason] = stoppingcriterion(problem, x, options, ...
-            info, iter+1);
+            info, epoch+1);
 
         if stop
             if options.verbosity >= 1
@@ -104,20 +187,10 @@ function [x cost info] = sgd(problem, x, options)
             break;
         end
         
-        for batchIndex = 1:options.sgd.batchnum-1
-            
-            % Compute the new gradient-related quantities for x
-            grad = problem.gradbatch(x, batchIndex);
-            
-            % Pick the descent direction as minus the gradient
-            desc_dir = problem.M.lincomb(x, -1, grad);
-
-            x = problem.M.retr(x, desc_dir, options.sgd.stepsize);       
-            
-        end
+        
     end
 
-    info = info(1:iter+1);
+    info = info(1:options.sgd.epoch+1);
 
     if options.verbosity >= 1
         fprintf('Total time is %f [s] (excludes statsfun)\n', ...
@@ -132,13 +205,12 @@ function [x cost info] = sgd(problem, x, options)
             stats.gradnorm = gradnorm;
             stats.cost = cost;
         end
-        if epoch == 1
-            stats.time = toc(timetic);
+        if epoch == 0
+            stats.time = 0;%toc(timetic);
         else
-            stats.time = info(epoch-1).time + toc(timetic);
+            stats.time = info(epoch).time + timetoc;
         end
         stats = applyStatsfun(problem, x, storedb, options, stats);
-        stats
     end
 
 end

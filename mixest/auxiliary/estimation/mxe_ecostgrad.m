@@ -1,13 +1,13 @@
-%% |mxe_costgrad|
+%% |mxe_ecostgrad|
 % *Note:* This is a private function.
 %
-% Returns the cost (negative log-likelihood) and its Riemannian gradient
+% Returns the cost (negative log-likelihood) and its Euclidean gradient
 % with respect to distribution parameters calculated on data, considering
 % penalization, etc. Used in gradient-based estimation functions.
 %
 % *Syntax*
 %
-%   [cost, grad] = mxe_costgrad(D, theta, data, options)
+%   [cost, grad] = mxe_ecostgrad(D, theta, data, options)
 %
 
 % Copyright 2015 Reshad Hosseini and Mohamadreza Mash'al
@@ -20,7 +20,7 @@
 % Change log: 
 %
 
-function [cost, grad] = mxe_costgrad(D, theta, data, options)
+function [cost, egrad] = mxe_ecostgrad(D, theta, data, options)
 % Note: options are NOT optional here. Following fields are required:
 %
 % * penalize
@@ -32,12 +32,11 @@ function [cost, grad] = mxe_costgrad(D, theta, data, options)
     % calculating the gradient in line-search.
     store = struct;
     %TODO make a convention for a specific field to contain theta-related intermediate parameters
-    
     data = mxe_readdata(data, false);
     index = data.index;
     N = data.size;
         
-    if options.penalize && ~isempty(options.penalizertheta)
+    if options.penalize
         % Calculating the penalizer cost and gradient
         [costPen, store] = D.penalizercost(theta, options.penalizertheta, store);
         if nargout > 1
@@ -109,7 +108,7 @@ function [cost, grad] = mxe_costgrad(D, theta, data, options)
         end
     end
 
-    if options.penalize && ~isempty(options.penalizertheta)
+    if options.penalize
         ll = ll + costPen;
         if nargout > 1
             egrad = D.sumparam(egrad, egradPen);
@@ -121,7 +120,6 @@ function [cost, grad] = mxe_costgrad(D, theta, data, options)
     
     cost = (-1/N) * ll;
     if nargout > 1
-        grad = D.M.egrad2rgrad(theta, egrad);
-        grad = D.M.lincomb(theta, -1/N, grad);
+        egrad = D.scaleparam(-1/N, egrad);
     end
 end

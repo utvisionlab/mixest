@@ -71,15 +71,15 @@ function  D = moefactory(GateD, ExpertD)
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
     if homogeneous
-        ExpertM = powermanifold(ExpertD.M, num);
+        ExpertM = mxe_powermanifold(ExpertD.M, num);
     else
         elements = cell(num, 1);
         for kk = 1:num
             elements{kk} = Experts{kk}.M;
         end
-        ExpertM = mxe_productmanifold(elements);
+        ExpertM = mxe_product2manifold(elements);
     end
-    D.M = productmanifold(struct('D', ExpertM, 'G', GateD.M));
+    D.M = mxe_productmanifold(struct('D', ExpertM, 'G', GateD.M));
 
 %% |expert|
 % expert distributions

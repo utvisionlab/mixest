@@ -91,7 +91,7 @@ function D = gammafactory(fixing)
         if ~fixed_b
             elements.b = positivefactory();
         end
-        M = productmanifold(elements);
+        M = mxe_productmanifold(elements);
     end
 
 %% |dim|

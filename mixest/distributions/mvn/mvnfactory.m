@@ -76,7 +76,7 @@ function D = mvnfactory(datadim)
 
     muM = euclideanfactory(datadim);
     sigmaM = spdfactory(datadim);
-    D.M = productmanifold(struct('mu', muM, 'sigma', sigmaM));
+    D.M = mxe_productmanifold(struct('mu', muM, 'sigma', sigmaM));
 
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.
