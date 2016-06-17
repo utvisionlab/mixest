@@ -41,22 +41,14 @@ function grad = mxe_gradbatch(D, theta, data, batch_index, options)
     idx = data.index;
     datamat = data.data;
     data_size = length(idx);
-        
-    batchnum = options.sgd.batchnum;
-    batch_size = floor(data_size / batchnum);
-    index_begin = (batch_index-1) * batch_size + 1;
-    index_end = min(batch_index*batch_size, data_size);
-    if batch_index == batchnum
-        index_end = data_size;
-    end
 
     if options.penalize
         % Calculating the penalizer gradient
         egradPen = D.penalizergrad(theta, options.penalizertheta);
     end
     
-    egrad = D.llgrad(theta, datamat(:, idx(index_begin:index_end)));
-    egrad = D.scaleparam(-1/(index_end-index_begin), egrad);
+    egrad = D.llgrad(theta, datamat(:, idx(batch_index)));
+    egrad = D.scaleparam(-1/length(batch_index), egrad);
     if options.penalize
         egradPen = D.scaleparam(-1/data_size, egradPen);
         egrad = D.sumparam(egrad, egradPen);

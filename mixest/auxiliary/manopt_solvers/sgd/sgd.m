@@ -92,21 +92,37 @@ function [x cost info] = sgd(problem, x, options)
         
         % Start timing this iteration
         timetic = tic();
-
+        
+        % Random permutation of indicies for each epoch
+        data_size = problem.data_size;
+        indicies = randperm(data_size);
+        batchnum = options.sgd.batchnum;
+        batch_size = floor(data_size / batchnum);
+        
         for batchIndex = 1:options.sgd.batchnum
             if mod(batchIndex,100) == 1
                 fprintf('.')
             end
+            
+            % selecting some part of indicies
+            index_begin = (batchIndex-1) * batch_size + 1;
+            index_end = min(batchIndex*batch_size, data_size);
+            if batchIndex == batchnum
+                index_end = data_size;
+            end
+            batchIndicies = indicies(index_begin:index_end);
+            
             % Compute the new gradient-related quantities for x
-            egrad = problem.egradbatch(x, batchIndex);
+            egrad = problem.egradbatch(x, batchIndicies);
             
             
-            if ~isinf(options.sgd.diminishC)
-                alpha = options.sgd.stepsize * (options.sgd.diminishC /...
-                    (options.sgd.diminishC + (epoch-1)*options.sgd.batchnum+batchIndex-1));
+            if ~isinf(options.sgd.diminishc)
+                alpha = options.sgd.stepsize * (options.sgd.diminishc /...
+                    (options.sgd.diminishc + (epoch-1)*options.sgd.batchnum+batchIndex-1));
             else
                 alpha = options.sgd.stepsize;
             end
+
             if options.sgd.momentum == 0 || (batchIndex == 1 && epoch == 1)
                 % Pick the descent direction as minus the gradient
                 desc_dir_euc = problem.D.scaleparam(-1*alpha, egrad);
@@ -132,7 +148,7 @@ function [x cost info] = sgd(problem, x, options)
                     % Concept of reducing variance of gradient
                     % We observed it is better to do that on Euclidean domain
                     % Than using Parallel transport in Riemmanian
-                    grad_svrg = problem.egradbatch(base_x, batchIndex);
+                    grad_svrg = problem.egradbatch(base_x, batchIndicies);
                     grad_svrg = problem.D.scaleparam(-1, grad_svrg);
                     grad_svrg = problem.D.sumparam(base_egrad, grad_svrg);
                     desc_dir_svrg = problem.D.scaleparam(-1*alpha, grad_svrg);
@@ -140,7 +156,7 @@ function [x cost info] = sgd(problem, x, options)
                     desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
                 else
                     % Different version using parallel transport Riem grad
-                    grad_svrg = problem.gradbatch(base_x, batchIndex);
+                    grad_svrg = problem.gradbatch(base_x, batchIndicies);
                     grad_svrg = problem.M.lincomb(base_x, 1, base_grad, -1, grad_svrg);
                     desc_dir_svrg = problem.M.transp(base_x, x, grad_svrg);
                     desc_dir = problem.M.lincomb(x, 1, desc_dir, ...
