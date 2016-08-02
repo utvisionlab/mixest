@@ -62,6 +62,8 @@ function [x cost info] = sgd(problem, x, options)
     if ~exist('x', 'var') || isempty(x)
         x = problem.M.rand();
     end
+    
+    check_decrease = true;
 
     if options.verbosity >= 2 || options.sgd.svrg
         if options.verbosity >= 2 && ~ options.sgd.svrg
@@ -76,6 +78,10 @@ function [x cost info] = sgd(problem, x, options)
             base_grad = grad;
         end
         if options.verbosity >= 2
+            if check_decrease
+                cost_old = cost;
+                x_old = x;
+            end
             fprintf(' epoch \t cost val\t grad. norm\n');
             fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
         end
@@ -100,7 +106,7 @@ function [x cost info] = sgd(problem, x, options)
         batch_size = floor(data_size / batchnum);
         
         for batchIndex = 1:options.sgd.batchnum
-            if mod(batchIndex,100) == 1
+            if mod(batchIndex,max(round(options.sgd.batchnum/10),100)) == 1
                 fprintf('.')
             end
             
@@ -116,11 +122,23 @@ function [x cost info] = sgd(problem, x, options)
             egrad = problem.egradbatch(x, batchIndicies);
             
             
-            if ~isinf(options.sgd.diminishc)
-                alpha = options.sgd.stepsize * (options.sgd.diminishc /...
-                    (options.sgd.diminishc + (epoch-1)*options.sgd.batchnum+batchIndex-1));
+            if length(options.sgd.stepsize) == 1
+                if options.sgd.base ~= 1
+                    alpha = options.sgd.stepsize * options.sgd.base^((epoch-1)* ...
+                            options.sgd.batchnum+batchIndex-1);
+                else
+                    if ~isinf(options.sgd.diminishc)
+                        alpha = options.sgd.stepsize * (options.sgd.diminishc /...
+                            ( options.sgd.diminishc + ((epoch-1)* ...
+                            options.sgd.batchnum+batchIndex-1).^options.sgd.power ));
+                    else
+                        alpha = options.sgd.stepsize;
+                    end
+                end
             else
-                alpha = options.sgd.stepsize;
+                lstepsize = length(options.sgd.stepsize);
+                nchoose = floor((epoch-1)/options.sgd.epoch*lstepsize)+1;
+                alpha = options.sgd.stepsize(nchoose);
             end
 
             if options.sgd.momentum == 0 || (batchIndex == 1 && epoch == 1)
@@ -183,6 +201,14 @@ function [x cost info] = sgd(problem, x, options)
                 base_grad = grad;
             end
             if options.verbosity >= 2
+                if check_decrease
+                    if cost < cost_old
+                        cost_old = cost;
+                        x_old = x;
+                    else
+                        x = x_old;
+                    end
+                end
                 fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
             end
         end
@@ -219,13 +245,19 @@ function [x cost info] = sgd(problem, x, options)
         stats.iter = epoch;
         if options.verbosity >= 2
             stats.gradnorm = gradnorm;
-            stats.cost = cost;
+            stats.cost = cost;     
         end
         if epoch == 0
             stats.time = 0;%toc(timetic);
         else
             stats.time = info(epoch).time + timetoc;
         end
+        
+        % Temporary adding
+        stats.theta = x;
+        stats.ll = -cost;
+        
+        
         stats = applyStatsfun(problem, x, storedb, options, stats);
     end
 
