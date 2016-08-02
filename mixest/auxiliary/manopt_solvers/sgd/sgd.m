@@ -181,6 +181,11 @@ function [x cost info] = sgd(problem, x, options)
                         -1*alpha, desc_dir_svrg);
                 end
             end
+            
+            if any(isnan(obj2vec(egrad)))
+                break;
+            end
+            
             xold = x;
             desc_dir_old = desc_dir;
             desc_dir_euc_old = desc_dir_euc;
@@ -202,11 +207,11 @@ function [x cost info] = sgd(problem, x, options)
             end
             if options.verbosity >= 2
                 if check_decrease
-                    if cost < cost_old
+                    if cost > cost_old || any(isnan(obj2vec(egrad)))
+                        x = x_old;
+                    else
                         cost_old = cost;
                         x_old = x;
-                    else
-                        x = x_old;
                     end
                 end
                 fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);

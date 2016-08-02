@@ -64,8 +64,8 @@ function [theta, store] = mixture_splitinit(D, idx, theta, options, data, store)
         if true
             DidxM = Didx.M;
             DidxRandvec = DidxM.randvec(theta.D{idx});
-            theta.D{end} = DidxM.retr(theta.D{idx},DidxRandvec, 2e-3);
-            theta.D{idx} = DidxM.retr(theta.D{idx},DidxRandvec, 1e-3);
+            theta.D{end} = DidxM.retr(theta.D{idx},DidxRandvec, 2e-10);
+            theta.D{idx} = DidxM.retr(theta.D{idx},DidxRandvec, 1e-10);
         else
             for m = 1 : numel(param_names)
                 param_name = param_names{m};

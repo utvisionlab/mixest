@@ -295,7 +295,10 @@ function D = agfactory(datadim)
 
     D.kl = @kl;
     function kl = kl(theta1, theta2) %#ok<STOUT,INUSD>
-        error('KL-divergence not implemented')
+        mat = eig(theta1.sigma, theta2.sigma);
+        logdet = sum(log(mat));
+        ELog = Integral_Method(mat);
+        kl = -0.5 * logdet + (datadim/2) * (ELog - psi(datadim/2) - log(2));
     end
 
 %% |AICc|
