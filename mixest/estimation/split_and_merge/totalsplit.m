@@ -227,6 +227,7 @@ function [theta, D, info, options] = totalsplit(data, target_num, options)
 
     end
 
+    impvec(impvec==-inf) = inf;
     
     % Second Loop: Merging part
     while D.num() > target_num
@@ -238,17 +239,36 @@ function [theta, D, info, options] = totalsplit(data, target_num, options)
             end
         end
         
-        % merge the best candidates
-        [idx1, idx2] = D.mergecandidates(theta, data, options, 1);
-        if options.verbosity >= 1
-            fprintf('\nMerging components (%d, %d) from the mixture with %d components...\n', idx1, idx2, D.num())
+        if false
+            
+            % merge the best candidates
+            [idx1, idx2] = D.mergecandidates(theta, data, options, 1);
+            if options.verbosity >= 1
+                fprintf('\nMerging components (%d, %d) from the mixture with %d components...\n', idx1, idx2, D.num())
+            end
+            [D, theta, idxMerged] = D.merge(idx1, idx2, theta, options, data);
+            
+            % Estimating the parameters partially for the newly merged component
+            opt = mxe_adjustoptions(opt_partial, info(end));
+            opt.previnfo = info;
+            [theta, D, info] = D.estimatepartial(idxMerged, theta, data, opt);
+            
+        else
+            [ignore, ind] = sort(impvec, 'ascend');
+            idx1 = ind(1);
+            idx2 = ind(2);
+            if options.verbosity >= 1
+                fprintf('\nMerging components (%d, %d) from the mixture with %d components...\n', idx1, idx2, D.num())
+            end
+            [D, theta, idxMerged] = D.merge(idx1, idx2, theta, options, data);
+            
+            % Estimating the parameters partially for the newly merged component
+            opt = mxe_adjustoptions(opt_partial, info(end));
+            opt.previnfo = info;
+            [theta, D, info] = D.estimatepartial(idxMerged, theta, data, opt);
+            impvec(idx1) = impvec(idx1) + impvec(idx2);
+            impvec(idx2) = '';
         end
-        [D, theta, idxMerged] = D.merge(idx1, idx2, theta, options, data);
-        
-        % Estimating the parameters partially for the newly merged component
-        opt = mxe_adjustoptions(opt_partial, info(end));
-        opt.previnfo = info;
-        [theta, D, info] = D.estimatepartial(idxMerged, theta, data, opt);
     end
     
     % Final estimation

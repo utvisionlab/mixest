@@ -139,7 +139,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     end
     
     % size of idxTrain
-    problem.data_size = length(idxTrain)
+    problem.data_size = length(idxTrain);
     
     % checkgradient
     if options.checkgradient

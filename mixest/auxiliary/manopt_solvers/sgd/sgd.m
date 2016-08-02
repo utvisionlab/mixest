@@ -86,13 +86,14 @@ function [x cost info] = sgd(problem, x, options)
             fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
         end
     end
+    
+    cost = nan;
 
     epoch = 0; 
     stats = savestats();
     info(1) = stats;
     info(min(10000, options.sgd.epoch+1)).iter = [];
         
-    cost = nan;
     % Start iterating until stopping criterion triggers
     for epoch = 1:options.sgd.epoch
         
