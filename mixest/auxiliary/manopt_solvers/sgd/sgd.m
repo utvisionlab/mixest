@@ -107,8 +107,10 @@ function [x cost info] = sgd(problem, x, options)
         batch_size = floor(data_size / batchnum);
         
         for batchIndex = 1:options.sgd.batchnum
-            if mod(batchIndex,max(round(options.sgd.batchnum/10),100)) == 1
-                fprintf('.')
+            if options.verbosity >= 1
+                if mod(batchIndex,max(round(options.sgd.batchnum/10),100)) == 1
+                    fprintf('.')
+                end
             end
             
             % selecting some part of indicies
@@ -182,7 +184,6 @@ function [x cost info] = sgd(problem, x, options)
                         -1*alpha, desc_dir_svrg);
                 end
             end
-            
             if any(isnan(obj2vec(egrad)))
                 break;
             end
@@ -237,7 +238,9 @@ function [x cost info] = sgd(problem, x, options)
         
         
     end
-
+    if options.verbosity >= 1
+        fprintf('\n');
+    end
     info = info(1:options.sgd.epoch+1);
 
     if options.verbosity >= 1

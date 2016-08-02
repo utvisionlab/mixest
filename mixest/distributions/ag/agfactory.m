@@ -40,7 +40,7 @@ function D = agfactory(datadim)
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
-    sigma = spdfactory(datadim);
+    sigma = spdffactory(datadim);
     D.M = mxe_productmanifold(struct('sigma', sigma));
 
 %% |dim|
