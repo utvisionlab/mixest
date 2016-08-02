@@ -254,6 +254,7 @@ function [theta, D, info, options] = totalsplit(data, target_num, options)
             [theta, D, info] = D.estimatepartial(idxMerged, theta, data, opt);
             
         else
+            % TODO: This should be done based on splitting frame
             [ignore, ind] = sort(impvec, 'ascend');
             idx1 = ind(1);
             idx2 = ind(2);
@@ -268,6 +269,7 @@ function [theta, D, info, options] = totalsplit(data, target_num, options)
             [theta, D, info] = D.estimatepartial(idxMerged, theta, data, opt);
             impvec(idx1) = impvec(idx1) + impvec(idx2);
             impvec(idx2) = '';
+            
         end
     end
     

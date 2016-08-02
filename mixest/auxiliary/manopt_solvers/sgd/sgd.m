@@ -63,7 +63,7 @@ function [x cost info] = sgd(problem, x, options)
         x = problem.M.rand();
     end
     
-    check_decrease = true;
+    check_decrease = false; % Set this to true, it is easier to stich to local minima
 
     if options.verbosity >= 2 || options.sgd.svrg
         if options.verbosity >= 2 && ~ options.sgd.svrg
