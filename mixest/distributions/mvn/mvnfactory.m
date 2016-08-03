@@ -443,16 +443,16 @@ function D = mvnfactory(datadim)
         n = data.size;
         data = data.data;
 
-        penalizer_theta.kappa = 0; %0.1;
-        penalizer_theta.nu = - datadim; %-1; %2;
+        penalizer_theta.kappa = 0.01; 
+        penalizer_theta.nu = datadim + 2; 
         penalizer_theta.mu = sum(data, 2)/n;
         data = bsxfun(@minus, data, penalizer_theta.mu);
-        sigma = (data * data.')/n;
+        sigma = (data * data.')/n/datadim; %Gorur and Rasmussen
         % Check if it is multiplication of identity
         if isequal(sigma, sigma(1,1) * eye(datadim))
-            penalizer_theta.invLambda = sigma(1,1);
+            penalizer_theta.invLambda = (sigma(1,1));
         else
-            penalizer_theta.invLambda = sigma;
+            penalizer_theta.invLambda = (sigma);
         end
     end
 

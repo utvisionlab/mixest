@@ -41,7 +41,7 @@ theta.sigma = bsxfun(@times, data, weight) * data' / n;
 
 if nargin > 2 && options.penalize
     mat = (kappa*n)/(kappa+n) * ((theta.mu-mu) * (theta.mu-mu).');
-    theta.sigma = (invLambda + mat +  theta.sigma *n) / (nu+n+d+1);
+    theta.sigma = (invLambda + mat +  theta.sigma *n) / (nu+n+d+2);
     theta.mu = (n * theta.mu + kappa * mu) / (n+kappa);
 end
 if nargout > 2
