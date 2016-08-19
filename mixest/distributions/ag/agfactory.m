@@ -40,7 +40,7 @@ function D = agfactory(datadim)
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
-    sigma = spdffactory(datadim);
+    sigma = spdfactory(datadim);
     D.M = mxe_productmanifold(struct('sigma', sigma));
 
 %% |dim|
@@ -253,11 +253,110 @@ function D = agfactory(datadim)
 
 %%
 
-% %% |estimatedefault|
-%     D.estimatedefault = @estimatedefault;
-%     function [varargout] = estimatedefault(varargin)
-%         [varargout{1:nargout}] = ecd_estimatedefault(D, varargin{:}); 
-%     end
+%% |estimatedefault|
+    D.estimatedefault = @estimatedefault;
+    function [varargout] = estimatedefault(varargin)
+        [varargout{1:nargout}] = ag_estimatedefault(D, varargin{:}); 
+    end
+
+%% |penalizerparam|
+% See <doc_distribution_common.html#15 distribution structure common members>.
+%
+% *Penalizer Info*
+%
+% The default penalizer for regularized Tyler estimator
+%
+% The form of penalizer:
+%
+% $$ f(\Sigma) = 
+% -0.5*log(|\Sigma|) - 0.5*d* log(trace(\Sigma^{-1} invLambda))) $$
+%
+% where
+%
+% * *|invLambda|* (|datadim-by-datadim| matrix) : The inverse scale matrix.
+%
+ 
+    D.penalizerparam = @penalizerparam;
+    function penalizer_theta = penalizerparam(data)
+        data = mxe_readdata(data);
+        n = data.size;
+        data = data.data;
+        % If no data goes to a component, the covariance would be
+        % sample covaraince dividen by %
+        sigmat = D.estimate(data);
+        sigmat = sigmat.sigma/datadim;
+        %sigmat = (data * data.')/n;
+        if isequal(sigmat, sigmat(1,1) * eye(datadim))
+            penalizer_theta.invLambda = sigmat(1,1);
+        else
+            penalizer_theta.invLambda = sigmat;
+        end
+    end
+ 
+%% |penalizercost|
+% See <doc_distribution_common.html#16 distribution structure common members>.
+ 
+    D.penalizercost = @penalizercost;
+    function [costP, store] = penalizercost(theta, penalizer_theta, store)
+        
+        if nargin < 3
+            store = struct;
+        end
+        
+        store = ll_intermediate_params1(theta, store);
+        logdetR = store.logdetR;
+        
+        if ~isfield(store, 'Sinv')
+            Rinv = store.Rinv;
+            store.Sinv = Rinv * Rinv';
+        end
+        
+                Sinv = store.Sinv;
+                
+ %       sigma = theta.sigma;
+        
+        
+        costP = - logdetR;
+        % If data to penalizeparam is whitened then invLambda is scalar
+        if isscalar(penalizer_theta.invLambda)
+            costP = costP - 0.5 * datadim * penalizer_theta.invLambda * log(trace(Sinv));
+        else
+            costP = costP - 0.5 * datadim* log(penalizer_theta.invLambda(:).' * Sinv(:));
+        end
+ 
+    end
+ 
+%% |penalizergrad|
+% See <doc_distribution_common.html#17 distribution structure common members>.
+ 
+    D.penalizergrad = @penalizergrad;
+    function [gradP, store] = penalizergrad(theta, penalizer_theta, store)
+        
+        if nargin < 3
+            store = struct;
+        end
+        
+        store = ll_intermediate_params1(theta, store);
+        
+        if ~isfield(store, 'Sinv')
+            Rinv = store.Rinv;
+            store.Sinv = Rinv * Rinv';
+        end
+        
+        Sinv = store.Sinv;
+        
+        %sigma = theta.sigma;
+        
+        if isscalar(penalizer_theta.invLambda)
+            gradP.sigma = -0.5 * Sinv +  0.5 * datadim * ...
+                penalizer_theta.invLambda * (Sinv * Sinv.');
+        else
+            slambda = (penalizer_theta.invLambda(:).' * Sinv(:));
+            gradP.sigma = -0.5 * Sinv +  0.5 * datadim * ...
+                1./slambda * Sinv * penalizer_theta.invLambda * Sinv;
+        end
+ 
+    end
 
 
 %% |sumparam|
