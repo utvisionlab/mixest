@@ -246,7 +246,12 @@ function D = agfactory(datadim)
             sigma = 1/N * (data * data.');
         else
             data2 = bsxfun(@times, sqrt(weight), data);
-            sigma = 1/sum(weight) * (data2 * data2.');
+            N = sum(weight);
+            sigma = 1/N * (data2 * data2.');
+        end
+        if N < datadim
+            disp('number of data is small');
+            sigma = sigma + mean(diag(sigma))/10*eye(datadim);
         end
         theta.sigma = sigma;
     end
@@ -264,7 +269,7 @@ function D = agfactory(datadim)
 %
 % *Penalizer Info*
 %
-% The default penalizer for regularized Tyler estimator
+% The default penalizer leads to regularized Tyler estimator
 %
 % The form of penalizer:
 %
@@ -279,13 +284,17 @@ function D = agfactory(datadim)
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data)
         data = mxe_readdata(data);
-        n = data.size;
+        N = data.size;
         data = data.data;
-        % If no data goes to a component, the covariance would be
-        % sample covaraince dividen by %
-        sigmat = D.estimate(data);
-        sigmat = sigmat.sigma/datadim;
-        %sigmat = (data * data.')/n;
+        
+        if N < datadim
+            disp('number of data is small in penalizer');
+            sigmat = D.init(data);
+        else
+            sigmat = D.estimate(data);
+        end
+        
+        sigmat = sigmat.sigma;
         if isequal(sigmat, sigmat(1,1) * eye(datadim))
             penalizer_theta.invLambda = sigmat(1,1);
         else
@@ -311,10 +320,7 @@ function D = agfactory(datadim)
             store.Sinv = Rinv * Rinv';
         end
         
-                Sinv = store.Sinv;
-                
- %       sigma = theta.sigma;
-        
+        Sinv = store.Sinv;
         
         costP = - logdetR;
         % If data to penalizeparam is whitened then invLambda is scalar
@@ -344,8 +350,6 @@ function D = agfactory(datadim)
         end
         
         Sinv = store.Sinv;
-        
-        %sigma = theta.sigma;
         
         if isscalar(penalizer_theta.invLambda)
             gradP.sigma = -0.5 * Sinv +  0.5 * datadim * ...
@@ -386,7 +390,11 @@ function D = agfactory(datadim)
 
     D.entropy = @entropy;
     function h = entropy(theta)
-        error('Entropy not implemented')      
+        mat = eig(theta.sigma);
+        logdet = sum(log(mat));
+        ELog = Integral_Method(mat);
+        h = 0.5 * logdet - (datadim/2) * (ELog - psi(datadim/2) - log(2)) - ...
+            gammaln(datadim/2) + (datadim/2) * log(pi) + log(2);
     end
 
 %% |kl|
