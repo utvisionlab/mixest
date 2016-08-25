@@ -294,6 +294,10 @@ function D = agfactory(datadim)
             sigmat = D.estimate(data);
         end
         
+        % This parameter necessary to ensure uniqueness even 
+        % when one single data goes to each cluster
+        % See Sun, et al. "Regularized Tyler ..."
+        penalizer_theta.alpha = datadim;
         sigmat = sigmat.sigma;
         if isequal(sigmat, sigmat(1,1) * eye(datadim))
             penalizer_theta.invLambda = sigmat(1,1);
@@ -329,6 +333,8 @@ function D = agfactory(datadim)
         else
             costP = costP - 0.5 * datadim* log(penalizer_theta.invLambda(:).' * Sinv(:));
         end
+        
+        costP = penalizer_theta.alpha * costP;
  
     end
  
@@ -359,6 +365,7 @@ function D = agfactory(datadim)
             gradP.sigma = -0.5 * Sinv +  0.5 * datadim * ...
                 1./slambda * Sinv * penalizer_theta.invLambda * Sinv;
         end
+        gradP.sigma = penalizer_theta.alpha * gradP.sigma;
  
     end
 
