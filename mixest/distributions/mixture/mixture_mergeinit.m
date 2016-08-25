@@ -62,10 +62,17 @@ function [theta, store] = mixture_mergeinit(D, idx1, idx2, theta, options, data,
         if strcmp(method, 'default')
             if true
                 options.verbosity = 0;
+                DidxM = D.component(idx1);
+                % penalizer_theta
+                if options.penalize
+                    if isempty(options.penalizertheta)
+                        options.penalizertheta = DidxM.penalizerparam(data);
+                    end
+                end
                 data = mxe_readdata(data);
                 h = D.weighting(theta, data);
                 data.weight = sum(h([idx1 idx2],:),1);
-                DidxM = D.component(idx1);
+                options.theta0 = theta.D{idx1};
                 theta.D{idx1} = DidxM.estimate(data, options);
             else
                 w1 = theta.p(idx1);

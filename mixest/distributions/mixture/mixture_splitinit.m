@@ -69,11 +69,18 @@ function [theta, store] = mixture_splitinit(D, idx, theta, options, data, store)
             if strcmp(method, 'default')
                 if true
                     options.verbosity = 0;
+                    DidxM = D.component(idx);
+                    % penalizer_theta
+                    if options.penalize
+                        if isempty(options.penalizertheta)
+                            options.penalizertheta = DidxM.penalizerparam(data);
+                        end
+                    end
                     data = mxe_readdata(data);
                     h = D.weighting(theta, data);
                     w = rand(1, data.size);
-                    DidxM = D.component(idx);
                     data.weight = w.*(h(idx,:)+0.1);
+                    options.theta0 = theta.D{idx};
                     theta.D{end} = DidxM.estimate(data, options);
                     data.weight = (1-w).*(h(idx,:)+0.1);
                     theta.D{idx} = DidxM.estimate(data, options);
