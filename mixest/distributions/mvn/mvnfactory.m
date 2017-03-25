@@ -442,12 +442,18 @@ function D = mvnfactory(datadim)
         data = mxe_readdata(data);
         n = data.size;
         data = data.data;
-
+        
         penalizer_theta.kappa = 0.01; 
-        penalizer_theta.nu = datadim + 2; 
         penalizer_theta.mu = sum(data, 2)/n;
         data = bsxfun(@minus, data, penalizer_theta.mu);
-        sigma = (data * data.')/n/datadim; %Gorur and Rasmussen
+        if false
+            penalizer_theta.nu = datadim + 2;
+            sigma = (data * data.')/n/datadim; %Gorur and Rasmussen
+        else 
+            % Procedure of riemmix paper
+            penalizer_theta.nu = - datadim - 2 + penalizer_theta.kappa;
+            sigma = (data * data.')/n;
+        end
         % Check if it is multiplication of identity
         if isequal(sigma, sigma(1,1) * eye(datadim))
             penalizer_theta.invLambda = (sigma(1,1));
