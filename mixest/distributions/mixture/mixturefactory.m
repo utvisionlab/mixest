@@ -1934,7 +1934,7 @@ function D = mixturefactory(ComponentD, num)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data)
-        penalizer_theta.phi = ones(nump,1);
+        penalizer_theta.phi = ones(nump,1) * 2;
         for k = 1:num
             penalizer_theta.D{k} = Components{k}.penalizerparam(data);
         end

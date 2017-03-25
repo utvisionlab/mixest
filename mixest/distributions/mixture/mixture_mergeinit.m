@@ -61,6 +61,8 @@ function [theta, store] = mixture_mergeinit(D, idx1, idx2, theta, options, data,
         method = get_method(options_mergeinit, Didx1Name, '');
         if strcmp(method, 'default')
             if true
+                % Do nothing pass theta out
+            elseif true
                 options.verbosity = 0;
                 DidxM = D.component(idx1);
                 % penalizer_theta

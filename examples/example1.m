@@ -29,13 +29,17 @@ options.plotCost.axes = subplot(2,2,2);
 options.plotGradNorm.axes = subplot(2,2,4);
 
 % main options
-options.verbosity = 1;
-options.solver = 'lbfgs';
-options.sgd.stepsize = 4;
+options.verbosity = 2;
+options.solver = 'sgd';
+options.sgd.stepsize = 1;
+batchnum = size(data,2)/(2*5);
+it = 20;
+options.sgd.batchnum = batchnum;
+options.sgd.base = 10^(-3/batchnum/it);
 % options.crossVal = true;
 % options.crossVal.tolIter = 100;
 % options.tolCostDiff = -Inf;
-% options.penalize = true;
+options.penalize =  true;
 % options.minibatch.iter = 5;
 % options.minibatch.discardHistory = false;
 % options.minibatch.size = 300;
