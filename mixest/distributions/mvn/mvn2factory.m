@@ -450,7 +450,7 @@ function D = mvn2factory(datadim)
         lam = mean(data, 2);
         % If no data goes to a component, the covariance would be
         % sample covaraince dividen by %
-        data = bsxfun(@minus, data, penalizer_theta.mu);
+        data = bsxfun(@minus, data, lam);
         Delta = (data * data.')/n;
         Delta = Delta * penalizer_theta.kappa;%(datadim + 3 + datadim);
         sigmat(1:end-1,1:end-1) = Delta + penalizer_theta.kappa*(lam * lam.');
