@@ -87,7 +87,7 @@ function [x cost info] = sgd(problem, x, options)
         end
     end
     
-    cost = nan;
+    %cost = nan;
 
     epoch = 0; 
     stats = savestats();
