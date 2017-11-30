@@ -1,39 +1,32 @@
-%% |mvnfactory|
-% Construct a multi-variate normal distribution structure
+%% |mvn2factory|
+%
+% Difference between this and mvn2factory is the manifold of spd 
+%
+% Construct a reparameterized multi-variate normal distribution structure
 %
 % *Syntax*
 %
-%   D = mvnfactory(datadim)
+%   D = mvn2factory(datadim)
 %
 % *Description*
 %
-% |D = mvnfactory(datadim)| returns a structure representing a
-% |datadim|-dimensional normal distribution.
+% |D = mvn2factory(datadim)| returns a structure representing a
+% |datadim|-dimensional normal distribution with a special
+% reparameterization.
 %
 % *Distribution Parameters*
 %
-% * *|mu|* (|datadim-by-1| vector) : The mean vector.
-% * *|sigma|* (|datadim-by-datadim| matrix) : The covariance matrix (or the
-% variance, $\sigma^2$, when |datadim|=1).
-%
-% *Probability Density Function*
-%
-% The distribution has the following density:
+% * *|sigmat|* (|(datadim+1)-by-(datadim+1)| matrix) : The compound mean
+% and covariance matrix.
 % 
-% $$ f(x;\mu,\Sigma)=
-% (2\pi)^{-\frac{n}{2}}|\Sigma|^{-\frac{1}{2}}
-% \exp\left(-\frac{1}{2}({x}-{\mu})^T{\Sigma}^{-1}({x}-{\mu})
-% \right) $$
+% *See also* <mvnfactory.html mvnfactory>
 %
-% where $n$ is the data space dimensions, $\mu$ is the mean vector and
-% $\Sigma$ is the covariance matrix.
-% 
 % *Example*
 %
 %   % Construct a bivariate normal distribution:
-%   D = mvnfactory(2);
+%   D = mvn2factory(2);
 %   % Build a parameter structure for it:
-%   theta = struct('mu', [0; 0], 'sigma', [2 0; 0 2]);
+%   theta = struct('sigmat', [2,0,0;0,2,0;0,0,1]);
 %   % Plot the PDF:
 %   x = -5:0.2:5;
 %   y = -5:0.2:5;
@@ -42,7 +35,7 @@
 %   f = D.pdf(theta, data);
 %   surf(X, Y, reshape(f, size(X)));
 %
-% <<img/mvnfactory_01.png>>
+% <<img/mvn2factory_01.png>>
 % 
 
 % Copyright 2015 Reshad Hosseini and Mohamadreza Mash'al
@@ -55,49 +48,91 @@
 % Change log: 
 %
 
-function D = mvnfactory(datadim)
+function D = mvn2factorytmp2(datadim)
 
 %% |name|
 % See <doc_distribution_common.html#1 distribution structure common members>.
 
-    D.name = @() 'mvn';
+    D.name = @() 'mvn2';
 
 %%
-
     assert(datadim >= 1, 'datadim must be an integer larger than or equal to 1.');
+    Dmvn = mvnfactory(datadim);
 
 %% 
 % Flag to control the memory usage (resulting code will be slower)
 
     low_memory = true;
-
+    
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
-    muM = euclideanfactory(datadim);
-    sigmaM = spdfactory(datadim);
-    D.M = mxe_productmanifold(struct('mu', muM, 'sigma', sigmaM));
+    sigmatM = spdfactorytmp(datadim+1);
+    %sigmatM = mxe_addsharedmanifold(sigmatM);
+    %D.M = productmanifold(struct('sigmat', sigmatM));
+    D.M = mxe_productmanifold(struct('sigmat', sigmatM));
 
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.
 
-    D.dim = @() datadim*(datadim+1)/2 + datadim; % parameter space dimensions
+    D.dim = @() datadim*(datadim+1); % parameter space dimensions
 
 %% |datadim|
 % See <doc_distribution_common.html#4 distribution structure common members>.
 
     D.datadim = @() datadim; % data space dimensions
 
+%% |main2new|
+% Convert usual MVN parameters to reparameterized parameters
+%
+% *Syntax*
+%
+%   theta = D.main2new(theta)
+%
+
+    D.main2new = @main2new;
+    function theta = main2new(theta)
+        if isfield(theta,'mu')
+            theta.sigmat = zeros(datadim+1);
+            theta.sigmat(end,1:datadim) = theta.mu;
+            theta.sigmat(1:datadim,end) = theta.mu.';
+            theta.sigmat(1:datadim,1:datadim) = theta.sigma + theta.mu*theta.mu.';
+            theta.sigmat(end,end) = 1;
+            theta = rmfield(theta,'mu');
+            theta = rmfield(theta,'sigma');
+        end
+    end
+
+%% |new2main|
+% Convert reparameterized parameters to usual MVN parameters
+%
+% *Syntax*
+%
+%   theta = D.new2main(theta)
+%
+
+    D.new2main = @new2main;
+    function theta = new2main(theta)
+        if isfield(theta,'sigmat');
+            sigma = theta.sigmat(1:datadim,1:datadim);
+            sigmaa = theta.sigmat(1:datadim,end);
+            sigmab = theta.sigmat(end,end);
+            theta.sigma = sigma - sigmaa*sigmaa.' / sigmab;
+            theta.mu = sigmaa/ sigmab;
+            theta = rmfield(theta,'sigmat');
+        end
+    end
+
 %%
 
     function store = ll_intermediate_params1(theta, store)
     % calculate intermediate parameters for ll #1 (parameters depending only on theta)
-        
+        theta = main2new(theta);
         if ~isfield(store, 'Rinv') || ~isfield(store, 'logdetR')
             % Compute inverse cholesky and 1/2 log(det(.)) of it
-            [R, p] = chol(theta.sigma); % C=R' R ( R upper trangular)
-             if p > 0
-                store.Rinv = zeros(datadim);
+            [R, p] = chol(theta.sigmat); % C=R' R ( R upper trangular)
+            if p > 0
+                store.Rinv = zeros(datadim+1);
                 store.logdetR = Inf;
                 warning('matrix is not symmetric positive definite ...\n');
                 if false
@@ -105,14 +140,14 @@ function D = mvnfactory(datadim)
                     %...');
                     t = 1e-10;
                     while p > 0
-                        theta.sigmat = theta.sigmat + t * eye(datadim);
+                        theta.sigmat = theta.sigmat + t * eye(datadim+1);
                         [R, p] = chol(theta.sigmat);
                         t = t * 100;
                     end
                     R = chol(theta.sigmat);
                 end
             else
-                store.Rinv = R \ eye(datadim); % Faster version of Rinv = inv_triu(R);
+                store.Rinv = R \ eye(datadim+1); % Faster version of Rinv = inv_triu(R);
                 store.logdetR = sum(log(diag(R)));
             end
         end
@@ -122,18 +157,14 @@ function D = mvnfactory(datadim)
             store.Sinv = Rinv * Rinv';
         end
     end
-    function store = ll_intermediate_params2(theta, data, store)
+    function store = ll_intermediate_params2(theta, data, store) %#ok<INUSL>
     % calculate intermediate parameters for ll #2
     % Note: store must contain fields created by the previous ll_intermediate_params functions
 
         if ~isfield(store, 'data') %|| ~isfield(store, 'weight')
             data = mxe_readdata(data);
-            data = data.data;
-            
-            % Subtracting mean from the data
-            data = bsxfun(@plus, data , -theta.mu);
-            store.data = data;
-            %store.weight = weight;
+            % Addind a row vector of 1 to the data
+            store.data = [data.data; ones(1,data.size)];
         end
     end
     function store = ll_intermediate_params3(weight, store)
@@ -142,7 +173,6 @@ function D = mvnfactory(datadim)
         
         if ~isfield(store, 'sumW') || ~isfield(store, 'DDT')
             data = store.data;
-            %weight = store.weight;
             
             % Multiply data by the square root of the weight
             if ~isempty(weight)
@@ -158,7 +188,7 @@ function D = mvnfactory(datadim)
             store.DDT = (data * data.');
             
             store.data = data;
-            store.weight = weight;
+            %store.weight = weight;
         end
     end
 
@@ -188,8 +218,7 @@ function D = mvnfactory(datadim)
         u = DDT(:).'*Sinv(:);
 
         % Calculate the log-likelihood
-        ll = sumW *(- (0.5*datadim)*log(2*pi) - logdetR) - (1/2)*u;
-        
+        ll = sumW *(- (0.5*datadim)*log(2*pi) - logdetR + 1/2) - (1/2)*u;
     end
 
 %% |llvec|
@@ -211,13 +240,13 @@ function D = mvnfactory(datadim)
         store = ll_intermediate_params2(theta, data, store);
         
         % u = X' C^-1 X 
-        u = sum((Rinv' * store.data).^2, 1);
+        u = sum((Rinv' * store.data).^2, 1); 
         
-        if low_memory % if size of data is large, better to remove data in store
+        if low_memory % if size of data is large, better to remove data from store
             store = rmfield(store,'data');
         end
         
-        llvec = - (0.5*datadim)*log(2*pi) - logdetR - (1/2)*u;            
+        llvec = - (0.5*datadim)*log(2*pi) - logdetR - (1/2)*u + 1/2;            
         if ~isempty(weight)
             llvec = weight .* llvec;
         end
@@ -243,28 +272,16 @@ function D = mvnfactory(datadim)
         store = ll_intermediate_params2(theta, data, store);
 
         store = ll_intermediate_params3(weight, store);
-        sumW = store.sumW;
-        DDT = store.DDT;
-
-        % gradient with respect to mu
-        if isfield(store, 'dld')
-            dll.mu = - sum(store.dld, 2);
-        else
-            if ~isempty(weight)
-                data = bsxfun(@times, store.data, store.weight);
-            else
-                data = store.data;
-            end
-            dll.mu = Sinv * sum(data, 2);
-        end
-
-        % gradient with respect to sigma
-        dll.sigma = 1/2 * ( -sumW * Sinv + Sinv * DDT *Sinv);
         
         if low_memory % if size of data is large, better to remove data from store
             store = rmfield(store,'data');
-            store = rmfield(store,'weight');
         end
+        
+        sumW = store.sumW;
+        DDT = store.DDT;
+
+        % gradient with respect to sigmat
+        dll.sigmat = 1/2 * ( -sumW * Sinv + Sinv * DDT *Sinv);
     end
 
 %% |llgraddata|
@@ -289,15 +306,15 @@ function D = mvnfactory(datadim)
         if ~isempty(weight)
             data = bsxfun(@times, data, weight);
         end
-
-        % gradient with respect to data
-        dld = - Sinv * data;
-        
-        store.dld = dld;
         
         if low_memory % if size of data is large, better to remove data from store
             store = rmfield(store,'data');
         end
+        
+        % gradient with respect to data
+        dld = - Sinv(1:end-1,:) * data;
+        
+        store.dld = dld;
     end
         
 %% |cdf|
@@ -305,13 +322,8 @@ function D = mvnfactory(datadim)
 
     D.cdf = @cdf;
     function y = cdf(theta, data)
-        data = mxe_readdata(data);
-        data = data.data;
-        if datadim == 1
-            y = 0.5 * erfc( (theta.mu - data) ./ sqrt(2*theta.sigma) );
-        else
-            y = mvncdf(data.', theta.mu.', theta.sigma).'; %TODO fro Genz
-        end
+        theta = new2main(theta);
+        y = Dmvn.cdf(theta, data);
     end
 
 %% |pdf|
@@ -322,13 +334,8 @@ function D = mvnfactory(datadim)
 
     D.sample = @sample;
     function data = sample(theta, n)
-        
-        if nargin < 2, n = 1; end
-        
-        data = randn(datadim, n);
-        L = chol(theta.sigma,'lower');
-        data = L * data;
-        data = bsxfun(@plus, data , theta.mu);
+        theta = new2main(theta);
+        data = Dmvn.sample(theta, n);
     end
 
 %% |randparam|
@@ -339,7 +346,6 @@ function D = mvnfactory(datadim)
 
     D.init = @init;
     function theta = init(data, varargin)
-        
         theta = estimatedefault(data);
     end
 
@@ -395,7 +401,7 @@ function D = mvnfactory(datadim)
 % *Example*
 %
 %   % create a Gaussian distribution
-%   D = mvnfactory(1);
+%   D = mvn2factory(1);
 %   % generate 1000 random data points
 %   data = randn(1,1000) .* 2 + 1;
 %   % estimate distribution parameters to fit the data
@@ -404,7 +410,7 @@ function D = mvnfactory(datadim)
 
     D.estimatedefault = @estimatedefault;
     function [varargout] = estimatedefault(varargin)
-        [varargout{1:nargout}] = mvn_estimatedefault(D, varargin{:});
+        [varargout{1:nargout}] = mvn2_estimatedefault(D, varargin{:});
     end
 
 %% |penalizerparam|
@@ -438,44 +444,26 @@ function D = mvnfactory(datadim)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data)
-        % Using Fraley&Raftery (2007) method for computing parameters
         data = mxe_readdata(data);
         n = data.size;
         data = data.data;
-        
-        penalizer_theta.kappa = 0.01; 
-        penalizer_theta.mu = sum(data, 2)/n;
-        data = bsxfun(@minus, data, penalizer_theta.mu);
-        if false
-            penalizer_theta.nu = datadim + 2;
-            sigma = (data * data.')/n/datadim; %Gorur and Rasmussen
-        else 
-            % Procedure of riemmix paper
-            penalizer_theta.nu = - datadim - 2 + penalizer_theta.kappa;
-            sigma = (data * data.')/n;
-            sigma = sigma * penalizer_theta.kappa;
-        end
-        % Check if it is multiplication of identity
-        if isequal(sigma, sigma(1,1) * eye(datadim))
-            penalizer_theta.invLambda = (sigma(1,1));
+        penalizer_theta.kappa = 0.01;
+        penalizer_theta.nu = - datadim - 2 + penalizer_theta.kappa;
+        sigmat = zeros(datadim+1);
+        lam = mean(data, 2);
+        % If no data goes to a component, the covariance would be
+        % sample covaraince dividen by %
+        data = bsxfun(@minus, data, lam);
+        Delta = (data * data.')/n;
+        Delta = Delta * penalizer_theta.kappa;%(datadim + 3 + datadim);
+        sigmat(1:end-1,1:end-1) = Delta + penalizer_theta.kappa*(lam * lam.');
+        sigmat(end,1:end-1) = penalizer_theta.kappa*lam;
+        sigmat(1:end-1, end) = sigmat(end,1:end-1).';
+        sigmat(end,end) = penalizer_theta.kappa;
+        if isequal(sigmat, sigmat(1,1) * eye(datadim))
+            penalizer_theta.invLambda = sigmat(1,1);
         else
-            penalizer_theta.invLambda = (sigma);
-        end
-    end
-
-%%
-
-    function store = penalizer_intermediate_params(theta, penalizer_theta, store)
-    % calculate intermediate parameters for penalizer
-    % Note: store must contain fields created by ll_intermediate_params1
-        
-        if ~isfield(store, 'SinvMu') || ~isfield(store, 'const1') || ~isfield(store, 'const2')
-            Sinv = store.Sinv;
-            
-            store.mu = theta.mu - penalizer_theta.mu;
-            store.SinvMu = Sinv * store.mu;
-            store.const1 = 0.5 * penalizer_theta.kappa;
-            store.const2 = penalizer_theta.nu + datadim + 1;
+            penalizer_theta.invLambda = sigmat;
         end
     end
 
@@ -492,24 +480,15 @@ function D = mvnfactory(datadim)
         store = ll_intermediate_params1(theta, store);
         logdetR = store.logdetR;
         Sinv = store.Sinv;
-
-        store = penalizer_intermediate_params(theta, penalizer_theta, store);
-        mu = store.mu;
-        SinvMu = store.SinvMu;
-        const1 = store.const1;
-        const2 = store.const2;
         
-        if penalizer_theta.kappa == 0
-            costP = 0;
-        else
-            costP = - logdetR - const1 * mu.' * SinvMu;
-        end
+        costP = - (penalizer_theta.nu + datadim + 2) * logdetR;
         % If data to penalizeparam is whitened then invLambda is scalar
         if isscalar(penalizer_theta.invLambda)
-            costP = costP - const2 * logdetR - 0.5 * penalizer_theta.invLambda * trace(Sinv);
+            costP = costP - 0.5 * penalizer_theta.invLambda * trace(Sinv);
         else
-            costP = costP - const2 * logdetR - 0.5 * (penalizer_theta.invLambda(:).' * Sinv(:));
+            costP = costP - 0.5 * (penalizer_theta.invLambda(:).' * Sinv(:));
         end
+
     end
 
 %% |penalizergrad|
@@ -524,24 +503,15 @@ function D = mvnfactory(datadim)
         
         store = ll_intermediate_params1(theta, store);
         Sinv = store.Sinv;
-
-        store = penalizer_intermediate_params(theta, penalizer_theta, store);
-        SinvMu = store.SinvMu;
-        const1 = store.const1;
-        const2 = store.const2;
-        if penalizer_theta.kappa == 0
-            const2 = - 0.5 * const2;
-        else
-            const2 = - 0.5 * (const2 + 1);
-        end
+        
         if isscalar(penalizer_theta.invLambda)
-            gradP.sigma = const2 * Sinv + const1 * (SinvMu * SinvMu.') + ...
+            gradP.sigmat = -0.5 * (penalizer_theta.nu + datadim + 2) * Sinv +  ...
                 (0.5 * penalizer_theta.invLambda) * (Sinv * Sinv.');
         else
-            gradP.sigma = const2 * Sinv + const1 * (SinvMu * SinvMu.') + ...
+            gradP.sigmat = -0.5 * (penalizer_theta.nu + datadim + 2) * Sinv +  ...
                 0.5 * Sinv * penalizer_theta.invLambda * Sinv;
         end
-        gradP.mu = - penalizer_theta.kappa * SinvMu;
+
     end
 
 %% |sumparam|
@@ -549,8 +519,7 @@ function D = mvnfactory(datadim)
 
     D.sumparam = @sumparam;
     function theta = sumparam(theta1, theta2)
-        theta.mu = theta1.mu + theta2.mu;
-        theta.sigma = theta1.sigma + theta2.sigma;
+        theta.sigmat = theta1.sigmat + theta2.sigmat;
     end
 
 %% |scaleparam|
@@ -558,8 +527,7 @@ function D = mvnfactory(datadim)
 
     D.scaleparam = @scaleparam;
     function theta = scaleparam(scalar, theta)
-        theta.mu = scalar * theta.mu;
-        theta.sigma = scalar * theta.sigma;
+        theta.sigmat = scalar * theta.sigmat;
     end
 
 %% |sumgrad|
@@ -573,7 +541,7 @@ function D = mvnfactory(datadim)
 
     D.entropy = @entropy;
     function h = entropy(theta)
-        logdetR = sum(log( diag( chol(theta.sigma) ) )); 
+        logdetR = sum(log( diag( chol(theta.sigmat) ) )); 
         h = logdetR  + 0.5 * datadim * ( log(2*pi)  + 1 );            
     end
 
@@ -587,12 +555,12 @@ function D = mvnfactory(datadim)
         % where M = Sigma_2^-1 *Sigma1 (index 1 is true and 2 is model)
         
         % A fast computation of both M and log(det(M)) using cholesky
-        U = chol(theta1.sigma); % Y.sigma = U'*U (U is upper-traingular)
-        V = chol(theta2.sigma);
+        U = chol(theta1.sigmat); % Y.sigmat = U'*U (U is upper-traingular)
+        V = chol(theta2.sigmat);
         V = V \ eye(datadim); % V = inv_triu(V);
         logdetR = sum(log( diag( U ) )) + sum(log( diag( V ) ));
         mu_diff = theta2.mu - theta1.mu; 
-        term = sum((mu_diff'*V).^2); %mu_diff'*inv(sigma_2)*mu_diff
+        term = sum((mu_diff'*V).^2); %mu_diff'*inv(sigmat_2)*mu_diff
         V =  U * V; % trace(AA')=sum(A(:).^2)
         trM = sum(V(:).^2); % trM = trace(Sigma_2^-1 *Sigma1)
         kl = 0.5*(trM + term - datadim) - logdetR;
@@ -611,7 +579,7 @@ function D = mvnfactory(datadim)
     function str = display(theta)
         str = '';
         str = [str, sprintf('mean (%d-by-1): %s\n', size(theta.mu,1), mat2str(theta.mu, 4))];
-        str = [str, sprintf('covariance (%d-by-%d): %s\n', size(theta.sigma,1), size(theta.sigma,2), mat2str(theta.sigma, 4))];
+        str = [str, sprintf('covariance (%d-by-%d): %s\n', size(theta.sigmat,1), size(theta.sigmat,2), mat2str(theta.sigmat, 4))];
         
         if nargout == 0
             str = [sprintf('%s distribution parameters:\n', D.name()), str];
@@ -622,28 +590,67 @@ function D = mvnfactory(datadim)
 % See <doc_distribution_common.html#27 distribution structure common members>.
 
     D.selfsplit = @selfsplit;
-    function [varargout] = selfsplit(varargin)
-        [varargout{1:nargout}] = mvn_selfsplit(D, varargin{:});
+    function [value1, value2, varargout] = selfsplit(theta, param_name, varargin)
+    % wrapper for mvn.selfsplit
+        
+        theta = new2main(theta);
+        
+        switch param_name % just to be general :)
+            case 'sigmat'
+
+                [mu1, mu2, varargout{1:nargout-2}] = mvn_selfsplit(Dmvn, theta, 'mu', varargin{:});
+                [sigma1, sigma2, varargout{1:nargout-2}] = mvn_selfsplit(Dmvn, theta, 'sigma', varargin{:}); %TODO support store
+                theta1 = struct('mu',mu1, 'sigma',sigma1);
+                theta2 = struct('mu',mu2, 'sigma',sigma2);
+                
+            otherwise
+                error('Unrecognized parameter name: %s', param_name)
+        end
+        
+        theta1 = main2new(theta1);
+        theta2 = main2new(theta2);
+        value1 = theta1.(param_name);
+        value2 = theta2.(param_name);
     end
     
 %% |selfmerge|
 % See <doc_distribution_common.html#28 distribution structure common members>.
 
     D.selfmerge = @selfmerge;
-    function [varargout] = selfmerge(varargin)
-        [varargout{1:nargout}] = mvn_selfmerge(D, varargin{:});
+    function [value, varargout] = selfmerge(theta1, theta2, param_name, varargin)
+        
+        theta1 = new2main(theta1);
+        theta2 = new2main(theta2);
+        
+        switch param_name % just to be general :)
+            case 'sigmat'
+
+                [mu, varargout{1:nargout-1}] = mvn_selfmerge(Dmvn, theta1, theta2, 'mu', varargin{:});
+                [sigma, varargout{1:nargout-1}] = mvn_selfmerge(Dmvn, theta1, theta2, 'sigma', varargin{:}); %TODO support store
+                
+                theta = struct('mu',mu, 'sigma',sigma);
+                
+            otherwise
+                error('Unrecognized parameter name: %s', param_name)
+        end
+        
+        theta = main2new(theta);
+        value = theta.(param_name);
     end
 
 %% |visualize|
 %
-% *Syntax*
-%
-%   handle_array = D.visualize(D, theta, vis_options)
-%
 
     D.visualize = @visualize;
-    function [varargout] = visualize(varargin)
-        [varargout{1:nargout}] = mvn_visualize(D, varargin{:});
+    function handle_array = visualize(theta, options)
+        
+        theta = new2main(theta);
+        
+        if nargin > 1
+            handle_array = mvn_visualize(D, theta, options);
+        else
+            handle_array = mvn_visualize(D, theta);
+        end
     end
 
 %%
