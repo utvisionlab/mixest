@@ -62,6 +62,8 @@ function [x cost info] = sgd(problem, x, options)
     if ~exist('x', 'var') || isempty(x)
         x = problem.M.rand();
     end
+    
+    check_decrease = false; % Set this to true, it is easier to stich to local minima
 
     if options.verbosity >= 2 || options.sgd.svrg
         if options.verbosity >= 2 && ~ options.sgd.svrg
@@ -76,37 +78,72 @@ function [x cost info] = sgd(problem, x, options)
             base_grad = grad;
         end
         if options.verbosity >= 2
+            if check_decrease
+                cost_old = cost;
+                x_old = x;
+            end
             fprintf(' epoch \t cost val\t grad. norm\n');
             fprintf('%5d\t%+.4e\t%.4e\n', 0, cost, gradnorm);
         end
     end
+    
+    %cost = nan;
 
     epoch = 0; 
     stats = savestats();
     info(1) = stats;
     info(min(10000, options.sgd.epoch+1)).iter = [];
         
-    cost = nan;
     % Start iterating until stopping criterion triggers
     for epoch = 1:options.sgd.epoch
         
         % Start timing this iteration
         timetic = tic();
-
+        
+        % Random permutation of indicies for each epoch
+        data_size = problem.data_size;
+        indicies = randperm(data_size);
+        batchnum = options.sgd.batchnum;
+        batch_size = floor(data_size / batchnum);
+        
         for batchIndex = 1:options.sgd.batchnum
-            if mod(batchIndex,100) == 1
-                fprintf('.')
+            if options.verbosity >= 1
+                if mod(batchIndex,max(round(options.sgd.batchnum/10),100)) == 1
+                    fprintf('.')
+                end
             end
+            
+            % selecting some part of indicies
+            index_begin = (batchIndex-1) * batch_size + 1;
+            index_end = min(batchIndex*batch_size, data_size);
+            if batchIndex == batchnum
+                index_end = data_size;
+            end
+            batchIndicies = indicies(index_begin:index_end);
+            
             % Compute the new gradient-related quantities for x
-            egrad = problem.egradbatch(x, batchIndex);
+            egrad = problem.egradbatch(x, batchIndicies);
             
             
-            if ~isinf(options.sgd.diminishC)
-                alpha = options.sgd.stepsize * (options.sgd.diminishC /...
-                    (options.sgd.diminishC + (epoch-1)*options.sgd.batchnum+batchIndex-1));
+            if length(options.sgd.stepsize) == 1
+                if options.sgd.base ~= 1
+                    alpha = options.sgd.stepsize * options.sgd.base^((epoch-1)* ...
+                            options.sgd.batchnum+batchIndex-1);
+                else
+                    if ~isinf(options.sgd.diminishc)
+                        alpha = options.sgd.stepsize * (options.sgd.diminishc /...
+                            ( options.sgd.diminishc + ((epoch-1)* ...
+                            options.sgd.batchnum+batchIndex-1).^options.sgd.power ));
+                    else
+                        alpha = options.sgd.stepsize;
+                    end
+                end
             else
-                alpha = options.sgd.stepsize;
+                lstepsize = length(options.sgd.stepsize);
+                nchoose = floor((epoch-1)/options.sgd.epoch*lstepsize)+1;
+                alpha = options.sgd.stepsize(nchoose);
             end
+
             if options.sgd.momentum == 0 || (batchIndex == 1 && epoch == 1)
                 % Pick the descent direction as minus the gradient
                 desc_dir_euc = problem.D.scaleparam(-1*alpha, egrad);
@@ -132,7 +169,7 @@ function [x cost info] = sgd(problem, x, options)
                     % Concept of reducing variance of gradient
                     % We observed it is better to do that on Euclidean domain
                     % Than using Parallel transport in Riemmanian
-                    grad_svrg = problem.egradbatch(base_x, batchIndex);
+                    grad_svrg = problem.egradbatch(base_x, batchIndicies);
                     grad_svrg = problem.D.scaleparam(-1, grad_svrg);
                     grad_svrg = problem.D.sumparam(base_egrad, grad_svrg);
                     desc_dir_svrg = problem.D.scaleparam(-1*alpha, grad_svrg);
@@ -140,13 +177,17 @@ function [x cost info] = sgd(problem, x, options)
                     desc_dir = problem.M.egrad2rgrad(x, desc_dir_euc);
                 else
                     % Different version using parallel transport Riem grad
-                    grad_svrg = problem.gradbatch(base_x, batchIndex);
+                    grad_svrg = problem.gradbatch(base_x, batchIndicies);
                     grad_svrg = problem.M.lincomb(base_x, 1, base_grad, -1, grad_svrg);
                     desc_dir_svrg = problem.M.transp(base_x, x, grad_svrg);
                     desc_dir = problem.M.lincomb(x, 1, desc_dir, ...
                         -1*alpha, desc_dir_svrg);
                 end
             end
+            if any(isnan(obj2vec(egrad)))
+                break;
+            end
+            
             xold = x;
             desc_dir_old = desc_dir;
             desc_dir_euc_old = desc_dir_euc;
@@ -167,6 +208,14 @@ function [x cost info] = sgd(problem, x, options)
                 base_grad = grad;
             end
             if options.verbosity >= 2
+                if check_decrease
+                    if cost > cost_old || any(isnan(obj2vec(egrad)))
+                        x = x_old;
+                    else
+                        cost_old = cost;
+                        x_old = x;
+                    end
+                end
                 fprintf('%5d\t%+.4e\t%.4e\n', epoch, cost, gradnorm);
             end
         end
@@ -189,7 +238,9 @@ function [x cost info] = sgd(problem, x, options)
         
         
     end
-
+    if options.verbosity >= 1
+        fprintf('\n');
+    end
     info = info(1:options.sgd.epoch+1);
 
     if options.verbosity >= 1
@@ -203,13 +254,19 @@ function [x cost info] = sgd(problem, x, options)
         stats.iter = epoch;
         if options.verbosity >= 2
             stats.gradnorm = gradnorm;
-            stats.cost = cost;
+            stats.cost = cost;     
         end
         if epoch == 0
             stats.time = 0;%toc(timetic);
         else
             stats.time = info(epoch).time + timetoc;
         end
+        
+        % Temporary adding
+        stats.theta = x;
+        stats.ll = -cost;
+        
+        
         stats = applyStatsfun(problem, x, storedb, options, stats);
     end
 

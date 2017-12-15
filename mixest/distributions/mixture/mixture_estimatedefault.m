@@ -124,7 +124,6 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
             
         
         if options.verbosity >= 2
-            options.verbosity
             fprintf('Log likelihood = %g , LL diff= %g \n', ll, ll_diff);
         end
 
@@ -159,6 +158,9 @@ function [theta, D, info, options] = mixture_estimatedefault(D, data, options)
         
         % M-step: Update the covariance matrix
         p = sum(hX, 2);
+        if options.penalize
+           p = p + (options.penalizertheta.phi-1);
+        end
         p = p / sum(p);
         theta.p = p;
         for k = 1:D.num()

@@ -86,11 +86,13 @@ function D = mixturefactory(ComponentD, num)
 
     D.name = @() 'mixture';
     
-%%
+%% 
+% Flag to control the memory usage (resulting code will be slower)
 
-    % Flag to control the memory usage (resulting code will be slower)
     low_memory = false;
     
+%%
+
     homogeneous = false;
     hXcache = []; % ll cache for fixed components (on train data)
     cacheValid = false; % flag indicating whether ll-cache is up-to-date
@@ -106,9 +108,7 @@ function D = mixturefactory(ComponentD, num)
             hXcache = fixing.hXcache;
             cacheValid = true;
         end
-        if isfield(fixing, 'data') && isfield(fixing, 'datapatchsize')
-            fill_cache(fixing.data, fixing.datapatchsize);
-        elseif isfield(fixing, 'data')
+        if isfield(fixing, 'data')
             fill_cache(fixing.data);
         end
         
@@ -206,20 +206,17 @@ function D = mixturefactory(ComponentD, num)
 
 %%
 
-    function fill_cache(all_data, datapatchsize)
+    function fill_cache(all_data)
     % caches ll for fixed components on all data (including
     % cross-validation data, other patches, etc).
     %
     % Note: (numfixed, fixedD, fixedtheta) must be set before calling this
-        
-        if nargin < 2
-            datapatchsize = inf;
-        end
-        hXcache = calc_cache(all_data, datapatchsize);
+    
+        hXcache = calc_cache(all_data);
         cacheValid = true;
     end
 
-    function hX = calc_cache(data, datapatchsize)
+    function hX = calc_cache(data)
     % calculate ll-cache for given data (used if cache is not filled)
     %
     % Note: (numfixed, fixedD, fixedtheta) must be set before calling this
@@ -233,25 +230,11 @@ function D = mixturefactory(ComponentD, num)
         end
         
         data.weight = [];
-        %data.index = []; % calculate the cache on all data  %TODO patching
-        
-        if isinf(datapatchsize)
-            datapatchsize = data.size;
+        data.index = []; % calculate the cache on all data  %TODO patching
+        for k = 1:numfixed
+            hX(k,:) = log(fixedtheta.p(k)) + fixedD{k}.llvec(fixedtheta.D{k}, data);
         end
-        
-        numk2 = ceil(data.size / datapatchsize);
-        
-        for k2 = 1:numk2
-            
-            bind = 1 + (k2-1)*datapatchsize;
-            eind = min(k2*datapatchsize, data.size);
-            data.index = bind:eind; % done with patching
-            for k = 1:numfixed
-                hX(k,bind:eind) = log(fixedtheta.p(k)) + ...
-                    fixedD{k}.llvec(fixedtheta.D{k}, data);
-            end 
-            
-        end
+
         % to minimize memory use, we sum up the fixed lls into one row.
         % (note: we can safely remove this line)
         hX = logsumexp(hX, 1);
@@ -276,13 +259,12 @@ function D = mixturefactory(ComponentD, num)
             elements = cell(num, 1);
             for k = 1:num
                 elements{k} = varD{k}.M;
-                %elements{k} = mxe_addsharedmanifold(varD{k}.M);
             end
+            %varM = mxe_productmanifold(elements);
             varM = mxe_product2manifold(elements);
         end
         % When having fixed components, p(num+1) is the global weight for fixedtheta.p
         % Note: fixedtheta.p always sums to 1
-        
         %p = simplexfactory(nump);
         %M = productmanifold(struct('D', varM, 'p', p));
         p = mxe_addsharedmanifold(simplexfactory(nump));
@@ -651,14 +633,6 @@ function D = mixturefactory(ComponentD, num)
 % |invidx = D.invertindex(idx, 'fixed')| returns the indices of the fixed
 % components other than those indexed  in |idx|.
 %
-% *Example*
-%
-%   D = mixturefactory(mvnfactory(1), 6);
-%   invidx = D.invertindex([3,5])
-%   
-%   invidx =
-%      1     2     4     6
-%
 
     D.invertindex = @invertindex;
     function invidx = invertindex(idx, fixedflag)
@@ -689,55 +663,9 @@ function D = mixturefactory(ComponentD, num)
 %   [newD, theta, idxFixed] = D.fixate(...)
 %   [newD, theta, idxFixed, idxMap] = D.fixate(...)
 %
-% *Description*
-%
-% |newD = D.fixate(idx, theta)| returns |newD|, the same mixture as |D|
-% where the variable components indexed by the index vector |idx| are fixed
-% and their parameter values will not change during estimation. |theta| is
-% a full parameter structure for the mixture. The values for the parameters
-% of the newly fixed components are read from |theta|.
-%
-% |[newD, theta] = D.fixate(idx, theta)| also returns the output |theta|,
-% containing the parameters for the variable components extracted from the
-% input |theta|, applicable to the new mixture, |newD|.
-%
-% |[newD, theta] = D.fixate(idx, theta, data)| can be used to fill the
-% log-likelihood cache for the fixed components, using the given |data|.
-% The cache is used for better performance while calculating the
-% log-likelihood for |newD|.
-%
-% |[newD, theta, idxFixed] = D.fixate(...)| also returns |idxFixed|, the
-% indices of the newly fixed components in |newD.fixedD()|.
-%
-% |[newD, theta, idxFixed, idxMap] = D.fixate(...)| also returns |idxMap|,
-% an index-map vector, with length |D.num()|, which maps the old indices of
-% the variable components in |D| to their new indices in |newD| (for those
-% that are not being fixed). You can use the map like this: |idx_new =
-% idxMap(idx_old)|, where |idx_old| denotes an index for a variable
-% component in |D| and |idx_new| denotes its new index in the variable
-% components of |newD|.
-%
-% *Example*
-%
-% This is how the |estimatepartial| function uses |invertindex|, |fixate|,
-% |estimate| and |unfix| to perform partial parameter estimation for
-% components indicated by |idx|:
-%
-%   function [newtheta, newD, info, options] = estimatepartial(idx, theta, data, options)
-%     % make the other components fixed
-%     invidx = invertindex(idx);
-%     [newD, theta0, idxfixed] = fixate(invidx, theta, data);
-%     % use the given theta as the initial point for estimation
-%     options.theta0 = theta0;
-%     % estimate the resulting partial mixture parameters
-%     [newtheta, newD, info, options] = newD.estimate(data, options);
-%     % bring the fixed components back
-%     [newD, newtheta] = newD.unfix(idxfixed, invidx, newtheta);
-%   end
-%
 
     D.fixate = @fixate;
-    function [newD, theta, idxFixed, idxMap] = fixate(idx, theta, data, datapatchsize)
+    function [newD, theta, idxFixed, idxMap] = fixate(idx, theta, data)
 
         % validation
         if num == 0
@@ -814,16 +742,13 @@ function D = mixturefactory(ComponentD, num)
         if nargin > 2
             Afixing.data = data;
         end
-        if nargin > 3
-            Afixing.datapatchsize = datapatchsize;
-        end
         
         % construct the new distribution
         newD = mixturefactory(Afixing);
     end
 
 %% |unfix|
-% Make some fixed component(s) variable (undo |fixate|)
+% Make some fixed component(s) variable
 %
 % *Syntax*
 %
@@ -832,56 +757,6 @@ function D = mixturefactory(ComponentD, num)
 %   [newD, theta] = D.unfix(idx, idxFixated, theta, data)
 %   [newD, theta, idxUnfixed] = D.unfix(...)
 %   [newD, theta, idxUnfixed, idxMap] = D.unfix(...)
-%
-% *Description*
-%
-% |newD = D.unfix(idx)| returns |newD|, the same mixture as |D| where the
-% fixed components indexed by the index vector |idx| are made variable for
-% estimation.
-%
-% |[newD, theta] = D.unfix(idx, idxFixated, theta)| brings back the fixed
-% components to their original place before fixation. |idxFixated|, same
-% size as |idx|, should be the index vector that was previously given to
-% |fixate| (as its first argument) to fixate these components. When
-% |idxFixated| is an empty vector, the components are added to the end of
-% the variable components. The input |theta| is a parameter structure for
-% the mixture |D| which has some fixed components, and the output |theta|
-% is the parameter structure for the mixture |newD| where the indexed
-% components are made variable.
-%
-% |[newD, theta] = D.unfix(idx, idxFixated, theta, data)| can be used to
-% fill the log-likelihood cache for any remaining fixed components, using
-% the given |data|. The cache is used for better performance while
-% calculating the log-likelihood for |newD|.
-%
-% |[newD, theta, idxUnfixed] = D.unfix(...)| also returns |idxUnfixed|, the
-% indices of the unfixed components in |newD.varD()|.
-%
-% |[newD, theta, idxUnfixed, idxMap] = D.unfix(...)| also returns |idxMap|,
-% an index-map vector, with length |D.numfixed()|, which maps the old
-% indices of the fixed components in |D| to their new indices in |newD|
-% (for those that are not being made variable). You can use the map like
-% this: |idx_new = idxMap(idx_old)|, where |idx_old| denotes an index for a
-% fixed component in |D| and |idx_new| denotes its new index in the fixed
-% components of |newD|.
-%
-% *Example*
-%
-% This is how the |estimatepartial| function uses |invertindex|, |fixate|,
-% |estimate| and |unfix| to perform partial parameter estimation for
-% components indicated by |idx|:
-%
-%   function [newtheta, newD, info, options] = estimatepartial(idx, theta, data, options)
-%     % make the other components fixed
-%     invidx = invertindex(idx);
-%     [newD, theta0, idxfixed] = fixate(invidx, theta, data);
-%     % use the given theta as the initial point for estimation
-%     options.theta0 = theta0;
-%     % estimate the resulting partial mixture parameters
-%     [newtheta, newD, info, options] = newD.estimate(data, options);
-%     % bring the fixed components back
-%     [newD, newtheta] = newD.unfix(idxfixed, invidx, newtheta);
-%   end
 %
 
     D.unfix = @unfix;
@@ -987,31 +862,10 @@ function D = mixturefactory(ComponentD, num)
 %
 % *Syntax*
 %
-%   newtheta = D.splitinit(idx, theta)
-%   newtheta = D.splitinit(idx, theta, options)
-%   newtheta = D.splitinit(idx, theta, options, data)
-%   [newtheta, store] = D.splitinit(idx, theta, options, data, store)
-%
-% *Description*
-%
-% |newtheta = D.splitinit(idx, theta)| returns the parameters for a new
-% mixture resulted by splitting the component indexed by |idx|. The input
-% |theta| is the parameters for the mixture before the split.
-% Initialization for the splitted components is performed using the default
-% methods for each parameter.
-%
-% |newtheta = D.splitinit(idx, theta, options)| uses |options.splitInit| to
-% initialize the parameters for the splitted components as described
-% <../estimation_options.html#10 here>.
-%
-% |newtheta = D.splitinit(idx, theta, options, data)| can be used if the
-% initialization method requires estimation data.
-%
-% |[newtheta, store] = D.splitinit(idx, theta, options, data, store)| can
-% be used for caching purposes as described <../caching.html here>.
-%
-% *Note:* This function is automatically called by the |split| function and
-% you don't usually need to call this function separately.
+%   theta = D.splitinit(idx, theta)
+%   theta = D.splitinit(idx, theta, options)
+%   theta = D.splitinit(idx, theta, options, data)
+%   [theta, store] = D.splitinit(idx, theta, options, data, store)
 %
 
     D.splitinit = @splitinit;
@@ -1030,57 +884,6 @@ function D = mixturefactory(ComponentD, num)
 %   [newD, newtheta] = D.split(idx, theta, options, data)
 %   [newD, newtheta, idxSplitted, idxMap] = D.split(...)
 %   [newD, newtheta, idxSplitted, idxMap, store] = D.split(idx, theta, options, data, store)
-%
-% *Description*
-%
-% |newD = D.split(idx)| returns the new mixture, |newD|, resulted by
-% splitting the component indexed by |idx| from |D|.
-%
-% |[newD, newtheta] = D.split(idx, theta)| also initializes the parameters
-% for the splitted components. The input |theta| is the parameter structure
-% for the mixture |D| before the split. The output |newtheta| is the
-% parameter structure of the new mixture, |newD|, after the split
-% (containing the parameters for an additional component). The initialized
-% parameter values for the first splitted component are stored at
-% |newtheta.D{idx}| and for the second at |newtheta.D{end}|. The component
-% weights in |newtheta.p| are also updated accordingly, such that each
-% splitted component has half the weight of the original component.
-%
-% |[newD, newtheta] = D.split(idx, theta, options)| uses
-% |options.splitInit| to initialize the parameters for the splitted
-% components as described <../estimation_options.html#10 here>.
-%
-% |[newD, newtheta] = D.split(idx, theta, options, data)| can be used if
-% the initialization method requires estimation data.
-%
-% |[newD, newtheta, idxSplitted, idxMap] = D.split(...)| also returns the
-% two indices of the splitted components in the vector |idxSplitted|. The
-% output |idxMap| is an index-map vector, with length |D.num()|, which maps
-% the old indices of the components in |D| to their new indices in |newD|.
-% You can use the map like this: |idx_new = idxMap(idx_old)|, where
-% |idx_old| denotes an index for a component in |D| and |idx_new| denotes
-% its new index in the components of |newD|.
-%
-% |[newD, newtheta, idxSplitted, idxMap, store] = D.split(idx, theta,
-% options, data, store)| can be used for caching purposes as described
-% <../caching.html here>.
-%
-% *Example*
-%
-% The following code demonstrates a basic usage of split-related functions:
-%
-%   % Construct a mixture distribution and generate random 
-%   % parameters and data for demonstration
-%   D = mixturefactory(mvnfactory(2), 3);
-%   theta = D.randparam();
-%   data = D.sample(theta, 1000);
-%   % Find candidate components for splitting
-%   idx_split = D.splitcandidates(theta, data);
-%   % Split the first candidate component
-%   idx = idx_split(1);
-%   [newD, newtheta, idxSplitted] = D.split(idx, theta);
-%   % We may estimate the parameters merely for the splitted components
-%   newtheta = newD.estimatepartial(idxSplitted, newtheta, data)
 %
 
     D.split = @split;
@@ -1139,27 +942,6 @@ function D = mixturefactory(ComponentD, num)
 %   theta = D.mergeinit(idx1, idx2, theta, options, data)
 %   [theta, store] = D.mergeinit(idx1, idx2, theta, options, data, store)
 %
-% *Description*
-%
-% |theta = D.mergeinit(idx1, idx2, theta)| returns the parameters for a new
-% mixture resulted by merging the components indexed by |idx1| and |idx2|.
-% The input |theta| is the parameters for the mixture before the merge.
-% Initialization for the merged component is performed using the default
-% methods for each parameter.
-%
-% |theta = D.mergeinit(idx1, idx2, theta, options)| uses
-% |options.mergeInit| to initialize the parameters for the merged component
-% as described <../estimation_options.html#10 here>.
-%
-% |theta = D.mergeinit(idx1, idx2, theta, options, data)| can be used if
-% the initialization method requires estimation data.
-%
-% |[theta, store] = D.mergeinit(idx1, idx2, theta, options, data, store)|
-% can be used for caching purposes as described <../caching.html here>.
-%
-% *Note:* This function is automatically called by the |merge| function and
-% you don't usually need to call this function separately.
-%
 
     D.mergeinit = @mergeinit;
     function [varargout] = mergeinit(varargin)
@@ -1177,58 +959,6 @@ function D = mixturefactory(ComponentD, num)
 %   [newD, newtheta] = D.merge(idx1, idx2, theta, options, data)
 %   [newD, newtheta, idxMerged, idxMap] = D.merge(...)
 %   [newD, newtheta, idxMerged, idxMap, store] = D.merge(idx1, idx2, theta, options, data, store)
-%
-% *Description*
-%
-% |newD = D.merge(idx1, idx2)| returns the new mixture, |newD|, resulted by
-% merging the components indexed by |idx1| and |idx2| from |D|.
-%
-% |[newD, newtheta] = D.merge(idx1, idx2, theta)| also initializes the
-% parameters for the merged components. The input |theta| is the parameter
-% structure for the mixture |D| before the merge. The output |newtheta| is
-% the parameter structure of the new mixture, |newD|, after the merge (with
-% one less item than |theta|). The initialized parameter values for the
-% merged component are stored at |newtheta.D{idx1}| and |theta.D{idx2}| is
-% removed in |newtheta|. The component weights in |newtheta.p| are also
-% updated accordingly, such that the merged component has the sum of the
-% weights of the original components.
-%
-% |[newD, newtheta] = D.merge(idx1, idx2, theta, options)| uses
-% |options.mergeInit| to initialize the parameters for the merged component
-% as described <../estimation_options.html#10 here>.
-%
-% |[newD, newtheta] = D.merge(idx1, idx2, theta, options, data)| can be
-% used if the initialization method requires estimation data.
-%
-% |[newD, newtheta, idxMerged, idxMap] = D.merge(...)| also returns the
-% index of the merged component in |idxMerged|. The output |idxMap| is an
-% index-map vector, with length |D.num()|, which maps the old indices of
-% the components in |D| to their new indices in |newD|. You can use the map
-% like this: |idx_new = idxMap(idx_old)|, where |idx_old| denotes an index
-% for a component in |D| and |idx_new| denotes its new index in the
-% components of |newD|.
-%
-% |[newD, newtheta, idxMerged, idxMap, store] = D.merge(idx1, idx2, theta,
-% options, data, store)| can be used for caching purposes as described
-% <../caching.html here>.
-%
-% *Example*
-%
-% The following code demonstrates a basic usage of merge-related functions:
-%
-%   % Construct a mixture distribution and generate random 
-%   % parameters and data for demonstration
-%   D = mixturefactory(mvnfactory(2), 3);
-%   theta = D.randparam();
-%   data = D.sample(theta, 1000);
-%   % Find candidate components for merging
-%   [idx_merge1, idx_merge2] = D.mergecandidates(theta, data);
-%   % Merge the first candidate components
-%   idx1 = idx_merge1(1);
-%   idx2 = idx_merge2(1);
-%   [newD, newtheta, idxMerged] = D.merge(idx1, idx2, theta);
-%   % We may estimate the parameters merely for the merged component
-%   newtheta = newD.estimatepartial(idxMerged, newtheta, data)
 %
 
     D.merge = @merge;
@@ -1295,42 +1025,6 @@ function D = mixturefactory(ComponentD, num)
 %   idx = D.splitcandidates(theta, data, options)
 %   idx = D.splitcandidates(theta, data, options, n)
 %
-% *Description*
-%
-% |idx = D.splitcandidates(theta, data)| returns the vector |idx|
-% containing indices of the components of |D|, sorted based on the default
-% split criterion (see <../estimation_options.html#10 Split-and-merge
-% options>). |idx| has a length equal to the number of components
-% (|D.num()|). The first element in |idx| refers to the best candidate
-% component for splitting, and the last element refers to the one having
-% the worse value of the split criterion.
-%
-% |idx = D.splitcandidates(theta, data, options)| uses
-% |options.sm.splitCriterion| as the split criterion for sorting the
-% components. see <../estimation_options.html#10 Split-and-merge options>
-% for more details.
-%
-% |idx = D.splitcandidates(theta, data, options, n)| where |n| is a
-% positive integer less than or equal to |D.num()|, returns only the |n|
-% best split candidates (|idx| will have a length of |n|).
-%
-% *Example*
-%
-% The following code demonstrates a basic usage of split-related functions:
-%
-%   % Construct a mixture distribution and generate random 
-%   % parameters and data for demonstration
-%   D = mixturefactory(mvnfactory(2), 3);
-%   theta = D.randparam();
-%   data = D.sample(theta, 1000);
-%   % Find candidate components for splitting
-%   idx_split = D.splitcandidates(theta, data);
-%   % Split the first candidate component
-%   idx = idx_split(1);
-%   [newD, newtheta, idxSplitted] = D.split(idx, theta);
-%   % We may estimate the parameters merely for the splitted components
-%   newtheta = newD.estimatepartial(idxSplitted, newtheta, data)
-%
 
     D.splitcandidates = @splitcandidates;
     function [varargout] = splitcandidates(varargin)
@@ -1346,44 +1040,6 @@ function D = mixturefactory(ComponentD, num)
 %   [idx1, idx2] = D.mergecandidates(theta, data, options)
 %   [idx1, idx2] = D.mergecandidates(theta, data, options, n)
 %
-% *Description*
-%
-% |[idx1, idx2] = D.mergecandidates(theta, data)| returns the vectors
-% |idx1| and |idx2| containing index pairs of the components of |D|, sorted
-% based on the default merge criterion (see <../estimation_options.html#10
-% Split-and-merge options>). |idx1| and |idx2| both have a length equal to
-% the number of components (|D.num()|). The first elements in |idx1| and
-% |idx2| refer to the best pair of candidate components for merging, and
-% the last pair of elements refer to those having the worse value of the
-% merge criterion.
-%
-% |[idx1, idx2] = D.mergecandidates(theta, data, options)| uses
-% |options.sm.mergeCriterion| as the merge criterion for sorting the
-% components. see <../estimation_options.html#10 Split-and-merge options>
-% for more details.
-%
-% |[idx1, idx2] = D.mergecandidates(theta, data, options, n)| where |n| is
-% a positive integer less than or equal to |D.num()|, returns only the |n|
-% best merge candidates (|idx1| and |idx2| will each have a length of |n|).
-%
-% *Example*
-%
-% The following code demonstrates a basic usage of merge-related functions:
-%
-%   % Construct a mixture distribution and generate random 
-%   % parameters and data for demonstration
-%   D = mixturefactory(mvnfactory(2), 3);
-%   theta = D.randparam();
-%   data = D.sample(theta, 1000);
-%   % Find candidate components for merging
-%   [idx_merge1, idx_merge2] = D.mergecandidates(theta, data);
-%   % Merge the first candidate components
-%   idx1 = idx_merge1(1);
-%   idx2 = idx_merge2(1);
-%   [newD, newtheta, idxMerged] = D.merge(idx1, idx2, theta);
-%   % We may estimate the parameters merely for the merged component
-%   newtheta = newD.estimatepartial(idxMerged, newtheta, data)
-%
 
     D.mergecandidates = @mergecandidates;
     function [varargout] = mergecandidates(varargin)
@@ -1395,7 +1051,7 @@ function D = mixturefactory(ComponentD, num)
 
     D.dim = @dim; % parameter space dimensions
     function dim = dim()
-        dim = nump - 1; % component weights
+        dim = nump; % component weights
         for k = 1:num
             dim = dim + Components{k}.dim(); % component parameters
         end
@@ -1408,67 +1064,41 @@ function D = mixturefactory(ComponentD, num)
 
 %%
 
-    function store = weighting_intermediate_params(theta, data, store, datapatchsize)
+    function store = weighting_intermediate_params(theta, data, store)
     % calculate intermediate parameters for weighting
         
         if ~isfield(store, 'componentStores')
             store.componentStores = cell(num,1);
         end
         
-        if nargin < 4
-            datapatchsize = inf;
-        end
-        
         if ~isfield(store, 'hX') || ~isfield(store, 'llik')
             data = mxe_readdata(data, false);
             index = data.index;
+            n = data.size;
+            datamat = data.data;
             
+            % Initialize different variables
+            hX = zeros(num, n);
+            % Calculate the log-likelihood of data goes to different clusters
+            for k = 1:num
+                if ~isstruct(store.componentStores{k})
+                    store.componentStores{k} = struct;
+                end
+                [llvec, store.componentStores{k}] = ...
+                    Components{k}.llvec(...
+                    theta.D{k}, struct('data',datamat, 'weight',[], 'index',index), ...
+                    store.componentStores{k});
+                hX(k,:) = log(theta.p(k)) + llvec;
+            end
             % add fixed lls to hX before calculating total ll
             if numfixed > 0
                 if cacheValid
                     hX_fixed = hXcache(:,index);
                 else
-                    hX_fixed = calc_cache(data, datapatchsize);
+                    hX_fixed = calc_cache(data);
                 end
-            end
-            
-            n = data.size;
-            data.weight = [];
-            
-            % Initialize different variables
-            hX = zeros(num, n);
-            
-            if isinf(datapatchsize)
-                datapatchsize = n;
-            end
-            
-            numk2 = ceil(n / datapatchsize);
-            
-           % Calculate the log-likelihood of data goes to different clusters
-            for k2 = 1:numk2
-                
-                bind = 1 + (k2-1)*datapatchsize;
-                eind = min(k2*datapatchsize, data.size);
-                data.index = index(bind:eind); % done with patching
-                for k = 1:num
-                    if ~isstruct(store.componentStores{k}) || numk2 > 1
-                        store.componentStores{k} = struct;
-                    end
-                    [llvec, store.componentStores{k}] = ...
-                        Components{k}.llvec(...
-                        theta.D{k}, data, store.componentStores{k});
-                    hX(k,bind:eind) = log(theta.p(k)) + llvec;
-                end
-                
-            end
-            
-           
-            
-            % add fixed lls to hX before calculating total ll
-            if numfixed > 0
                 hX = vertcat(hX, log(theta.p(num+1)) + hX_fixed);
             end
-            
             % hX is a (num-by-n) matrix where each column of hX contains
             % log(p_k*D_k) for a data point for every component (1<k<num).
             store.hX = hX;
@@ -1479,58 +1109,23 @@ function D = mixturefactory(ComponentD, num)
     end
 
 %% |weighting|
-% Calculate the weighting (posterior probability) of each mixture component
-% for each data point
+% Calculate the weighting (posterior probability) of each data point in
+% relation to each mixture component
 %
 % *Syntax*
 %
 %   component_weights = D.weighting(theta, data)
 %   [component_weights, store] = D.weighting(theta, data, store)
 %
-% *Description*
-%
-% |component_weights = D.weighting(theta, data)| returns a |K-by-N| matrix
-% where |K| is the number of mixture components (|D.num()|) and |N| is the
-% number of data points. Each column of the matrix contains the posterior
-% probabilities of each mixture component for the corresponding data point.
-% The probabilities are normalized such that each column sums up to unity.
-% |theta| is the parameter structure for the mixture, and |data| is the
-% data input.
-%
-% |[component_weights, store] = D.weighting(theta, data, store)| can be
-% used for caching purposes as described <../caching.html here>.
-%
-% For information about the input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>.
-%
-% *Example*
-%
-%   D = mixturefactory(mvnfactory(1), 2);
-%   theta.D{1} = struct('mu',0, 'sigma',1);
-%   theta.D{2} = struct('mu',2, 'sigma',1);
-%   theta.p = [0.5 0.5];
-%   data = [0 1 2];
-%   component_weights = D.weighting(theta, data)
-%
-%   component_weights =
-%     0.8808    0.5000    0.1192
-%     0.1192    0.5000    0.8808
-%
 
     D.weighting = @weighting;
-    function [component_weights, store] = weighting(theta, data, store, datapatchsize)
+    function [component_weights, store] = weighting(theta, data, store, ignore)
         
         if nargin < 3
             store = struct;
         end
         
-        if nargin < 4
-            datapatchsize = inf;
-        end
-        
-        store = weighting_intermediate_params(theta, data, store, datapatchsize);
+        store = weighting_intermediate_params(theta, data, store);
         hX = store.hX;
         llik = store.llik;
         
@@ -1542,10 +1137,10 @@ function D = mixturefactory(ComponentD, num)
         if ~isempty(weight)
             component_weights = bsxfun(@times, component_weights, weight);
         end
-        % low_memory = true; This Line makes the speed 2 times slower
+        
         if low_memory
             store = rmfield(store,'hX');
-            %store = rmfield(store,'llik');
+            store = rmfield(store,'llik');
         end
     end
 
@@ -1638,6 +1233,91 @@ function D = mixturefactory(ComponentD, num)
 
     end
 
+%% |regcost|
+% Regularizer cost
+%
+% *Syntax*
+%
+%   reg = regcost(theta, data)
+%   [reg, store] = regcost(theta, data, store)
+%
+
+    D.regcost = @regcost;
+    function [reg, store] = regcost(theta, data, store)
+        
+        if nargin < 3
+            store = struct;
+        end
+        
+        [component_weights, store] = weighting(theta, data, store);
+
+        % First compute the number of data that go to different clusters
+        if ~isfield(store, 'hXsum')
+            store.hXsum = sum(component_weights, 2);
+        end
+        
+        % Compute the cost with respect to component weights
+        regparam = dim();
+        regparam = max(regparam , sum(store.hXsum)/(10*num));
+        reg = BayesFactor(store.hXsum, regparam);
+        reg2 = HAICmc(store.hXsum, regparam);
+        reg = reg - reg2;
+    end
+
+%% |reggrad|
+% Regularizer gradient with respect to parameters
+%
+% *Syntax*
+%
+%   dll = reggrad(theta, data)
+%   [dll, store] = reggrad(theta, data, store)
+%
+
+    D.reggrad = @reggrad;
+    function [dll, store] = reggrad(theta, data, store)
+        
+        if nargin < 3
+            store = struct;
+        end
+        
+        [component_weights, store] = weighting(theta, data, store);
+
+        % First compute the number of data that go to different clusters
+        if ~isfield(store, 'hXsum')
+            store.hXsum = sum(component_weights, 2);
+        end
+        
+        % Compute the gradient with respect to component weights
+        regparam = dim();
+        regparam = max(regparam , sum(store.hXsum)/(10*num));
+        [unused, dreg] = BayesFactor(store.hXsum, regparam); %#ok<ASGLU>
+        [unused, dreg2] = HAICmc(store.hXsum, regparam); %#ok<ASGLU>
+        dreg = dreg - dreg2;
+        % based on regularization gradient update the component weighting
+        weight_mod = bsxfun(@times, dreg, component_weights);
+        common_part = col_sum(weight_mod);
+        
+        component_weights = component_weights+ weight_mod - ...
+            bsxfun(@times, component_weights, common_part);
+        
+        data = mxe_readdata(data, false);
+        index = data.index;
+        datamat = data.data;
+
+        % Given the weighting calculate the gradient
+        dll.D = cell(num, 1);
+        for k = 1:num
+            if ~isstruct(store.componentStores{k})
+                store.componentStores{k} = struct;
+            end
+            [dll.D{k}, store.componentStores{k}] = ...
+                Components{k}.llgrad(theta.D{k}, ...
+                struct('data',datamat, 'weight',component_weights(k,:), 'index',index), ...
+                store.componentStores{k});
+        end
+        dll.p = squeeze(sum(component_weights, 2)./theta.p);
+    end
+
 %% |llgraddata|
 % See <doc_distribution_common.html#8 distribution structure common members>.
 
@@ -1680,6 +1360,16 @@ function D = mixturefactory(ComponentD, num)
         fulltheta = fullparam(theta);
         for k = 1:numtotal
             y = y + fulltheta.p(k) .* Components{k}.cdf(fulltheta.D{k}, data);
+        end
+    end
+
+%% |gaussianize|
+% 
+    D.gaussianize = @gaussianize;
+    function y = gaussianize(theta, data)
+        y = cdf(theta, data);
+        for k = 1: size(y,1)
+            y(k,:) = -sqrt(2).*erfcinv(2*y(k,:));
         end
     end
 
@@ -1824,80 +1514,12 @@ function D = mixturefactory(ComponentD, num)
 %
 %   newtheta = D.estimatepartial(idx, theta, data)
 %   newtheta = D.estimatepartial(idx, theta, data, options)
-%   [newtheta, D] = D.estimatepartial(...)
-%   [newtheta, D, info] = D.estimatepartial(...)
-%   [newtheta, D, info, options] = D.estimatepartial(...)
+%   [newtheta, newD] = D.estimatepartial(...)
+%   [newtheta, newD, info] = D.estimatepartial(...)
+%   [newtheta, newD, info, options] = D.estimatepartial(...)
 %
-% *Description*
-%
-% |newtheta = D.estimatepartial(idx, theta, data)| estimates the parameters
-% for the components indexed by the vector |idx| while preserving the
-% parameter values for the other mixture components. |theta| contains the
-% current values of parameters for all mixture components. The parameter
-% values for those components that are indexed by |idx| are used as the
-% initial point for their estimation, and the other parameters remain
-% unchanged in the returned parameter structure.
-%
-% |newtheta = D.estimatepartial(idx, theta, data, options)| utilizes
-% applicable options from the |options| structure in the estimation
-% procedure.
-%
-% |[newtheta, D] = D.estimatepartial(...)| also returns |D|, the
-% distribution structure for which |theta| is applicable. (This is the same
-% as the distribution structure |D| from which you called |estimate|, and
-% so it should not normally be used. The purpose of including it in the
-% output is to maintain compatibility with other estimation functions).
-%
-% |[newtheta, D, info] = D.estimatepartial(...)| also returns |info|, a
-% structure array containing information about successive iterations
-% performed by iterative estimation functions.
-%
-% |[newtheta, D, info, options] = D.estimatepartial(...)| also returns the
-% effective |options| used, so you can see what default values the function
-% used on top of the options you possibly specified.
-%
-% For information about the input |theta| and output |newtheta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>. You may also want to read about
-% <../estimation_options.html |options|> or
-% <../estimation_statistics_structure.html |info|> arguments.
-%
-% *Available Options*
-%
-% This function supports all the options described in
-% <../estimation_options.html estimation options>.
-%
-% *Note:* |options.theta0| will be ignored since the input |theta| contains
-% the initial point for estimation.
-%
-% *Returned |info| fields*
-%
-% The fields present in the returned |info| structure array, depend on the
-% solver used (|options.solver|). When a Manopt solver is specified, the
-% |info| returned by the Manopt solver is returned directly. For the 'default'
-% solver see the documentation of the 'estimatedefault' function for the
-% specific distribution. You can read more at our documentation on
-% <../estimation_statistics_structure.html estimation statistics
-% structure>.
-%
-% *Example*
-%
-% The following code uses |estimatepartial| to estimate the parameters of
-% splitted components after a split:
-%
-%   % Construct a mixture distribution and generate random 
-%   % parameters and data for demonstration
-%   D = mixturefactory(mvnfactory(2), 3);
-%   theta = D.randparam();
-%   data = D.sample(theta, 1000);
-%   % Find candidate components for splitting
-%   idx_split = D.splitcandidates(theta, data);
-%   % Split the first candidate component
-%   idx = idx_split(1);
-%   [newD, newtheta, idxSplitted] = D.split(idx, theta);
-%   % Estimate the parameters merely for the splitted components
-%   newtheta = newD.estimatepartial(idxSplitted, newtheta, data)
+% *Note:* |options.theta0| is ignored and the given |theta| is used as the
+% initial point.
 %
 
     D.estimatepartial = @estimatepartial;
@@ -1911,7 +1533,7 @@ function D = mixturefactory(ComponentD, num)
 
         % make the other components fixed
         invidx = invertindex(idx);
-        [newD, theta0, idxfixed] = fixate(invidx, theta, data, options.datapatchsize);
+        [newD, theta0, idxfixed] = fixate(invidx, theta, data);
         
         % use the given theta as the initial point for estimation
         options.theta0 = theta0;
@@ -1934,7 +1556,7 @@ function D = mixturefactory(ComponentD, num)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data)
-        penalizer_theta.phi = ones(nump,1) * 2;
+        penalizer_theta.phi = ones(nump,1);
         for k = 1:num
             penalizer_theta.D{k} = Components{k}.penalizerparam(data);
         end
@@ -1991,139 +1613,6 @@ function D = mixturefactory(ComponentD, num)
         end
     end
 
-%% |regcost|
-% Regularizer cost
-%
-% *Syntax*
-%
-%   reg = D.regcost(theta, data)
-%   [reg, store] = D.regcost(theta, data, store)
-%
-% *Description*
-%
-% |reg = D.regcost(theta, data)| returns the cost penalty for the
-% model-free regularization method (Hosseini, 2012). This regularization
-% penalizes components that take few data points.
-%
-% |[reg, store] = D.regcost(theta, data, store)| can be used for caching
-% purposes as described <../caching.html here>.
-%
-% The output of this function is used as a regularizer for the cost
-% function during parameter estimation when |options.regularize| is turned
-% on.
-%
-% For information about the input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>.
-%
-% *References*
-%
-% # R. Hosseini, “Natural Image Modelling using Mixture Models with
-% compression as an application,” Berlin, Technische Universtit?t Berlin,
-% Diss., 2012, 2012.
-%
-
-    D.regcost = @regcost;
-    function [reg, store] = regcost(theta, data, store)
-        
-        if nargin < 3
-            store = struct;
-        end
-        
-        [component_weights, store] = weighting(theta, data, store);
-
-        % First compute the number of data that go to different clusters
-        if ~isfield(store, 'hXsum')
-            store.hXsum = sum(component_weights, 2);
-        end
-        
-        % Compute the cost with respect to component weights
-        regparam = dim();
-        regparam = max(regparam , sum(store.hXsum)/(10*num));
-        reg = BayesFactor(store.hXsum, regparam);
-        reg2 = HAICmc(store.hXsum, regparam);
-        reg = reg - reg2;
-    end
-
-%% |reggrad|
-% Regularizer gradient with respect to parameters
-%
-% *Syntax*
-%
-%   dll = D.reggrad(theta, data)
-%   [dll, store] = D.reggrad(theta, data, store)
-%
-% *Description*
-%
-% |dll = D.reggrad(theta, data)| returns the (Euclidean) gradient penalty
-% for the model-free regularization method (Hosseini, 2012). This
-% regularization penalizes components that take few data points.
-%
-% |[dll, store] = D.reggrad(theta, data, store)| can be used for caching
-% purposes as described <../caching.html here>.
-%
-% The output of this function is used as a regularizer for the
-% cost-gradient function during parameter estimation when
-% |options.regularize| is turned on.
-%
-% For information about the input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>.
-%
-% *References*
-%
-% # R. Hosseini, “Natural Image Modelling using Mixture Models with
-% compression as an application,” Berlin, Technische Universtit?t Berlin,
-% Diss., 2012, 2012.
-%
-
-    D.reggrad = @reggrad;
-    function [dll, store] = reggrad(theta, data, store)
-        
-        if nargin < 3
-            store = struct;
-        end
-        
-        [component_weights, store] = weighting(theta, data, store);
-
-        % First compute the number of data that go to different clusters
-        if ~isfield(store, 'hXsum')
-            store.hXsum = sum(component_weights, 2);
-        end
-        
-        % Compute the gradient with respect to component weights
-        regparam = dim();
-        regparam = max(regparam , sum(store.hXsum)/(10*num));
-        [unused, dreg] = BayesFactor(store.hXsum, regparam); %#ok<ASGLU>
-        [unused, dreg2] = HAICmc(store.hXsum, regparam); %#ok<ASGLU>
-        dreg = dreg - dreg2;
-        % based on regularization gradient update the component weighting
-        weight_mod = bsxfun(@times, dreg, component_weights);
-        common_part = sum(weight_mod, 1);
-        
-        component_weights = component_weights+ weight_mod - ...
-            bsxfun(@times, component_weights, common_part);
-        
-        data = mxe_readdata(data, false);
-        index = data.index;
-        datamat = data.data;
-
-        % Given the weighting calculate the gradient
-        dll.D = cell(num, 1);
-        for k = 1:num
-            if ~isstruct(store.componentStores{k})
-                store.componentStores{k} = struct;
-            end
-            [dll.D{k}, store.componentStores{k}] = ...
-                Components{k}.llgrad(theta.D{k}, ...
-                struct('data',datamat, 'weight',component_weights(k,:), 'index',index), ...
-                store.componentStores{k});
-        end
-        dll.p = squeeze(sum(component_weights, 2)./theta.p);
-    end
-
 %% |sumparam|
 % See <doc_distribution_common.html#18 distribution structure common members>.
 
@@ -2168,22 +1657,7 @@ function D = mixturefactory(ComponentD, num)
     end
 
 %% |kl|
-% Calculate Kullback–Leibler divergence between mixture components
-%
-% *Syntax*
-%
-%   kl = D.kl(theta)
-%
-% *Description*
-%
-% |kl = D.kl(theta)| returns a symmetric |K-by-K| matrix where |K| is the
-% number of mixture components (|D.num()|). The element at (i,j) in this
-% matrix contains the KL divergence between the i'th and j'th components.
-% |theta| is the parameter structure for the mixture.
-%
-% For information about the parameter input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>.
-%
+% See <doc_distribution_common.html#23 distribution structure common members>.
 
     D.kl = @kl;
     function kl = kl(theta)
@@ -2223,20 +1697,6 @@ function D = mixturefactory(ComponentD, num)
 %
 %   mml = D.MML(theta, data)
 %   [mml, gradMML] = D.MML(theta, data)
-%
-% *Description*
-%
-% |mml = D.MML(theta, data)| calculates the minimum message length (MML)
-% information criterion of the distribution |D| with parameters |theta| for
-% the given |data|.
-%
-% |[mml, gradMML] = D.MML(theta, data)| also returns |gradMML|, the
-% gradient of MML with respect to component posterior probabilities.
-%
-% For information about the parameter input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>.
 %
 
     D.MML = @MML;
@@ -2282,23 +1742,6 @@ function D = mixturefactory(ComponentD, num)
 %
 %   bic = D.BICm(theta, data)
 %
-% *Description*
-%
-% |bic = D.BICm(theta, data)| calculates the modified Bayesian information
-% criterion (Hosseini, 2012) of the distribution |D| with parameters
-% |theta| for the given |data|.
-%
-% For information about the parameter input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>.
-%
-% *References*
-%
-% # R. Hosseini, “Natural Image Modelling using Mixture Models with
-% compression as an application,” Berlin, Technische Universtit?t Berlin,
-% Diss., 2012, 2012.
-%
 
     D.BICm = @BICm;
     function bic = BICm(theta, data)
@@ -2331,23 +1774,6 @@ function D = mixturefactory(ComponentD, num)
 %
 %   aicc = D.AICmc(theta, data)
 %   [aicc, gradAicc] = D.AICmc(theta, data)
-%
-% *Description*
-%
-% |aicc = D.AICmc(theta, data)| calculates the modified corrected Akaike
-% information criterion (Hosseini, 2012) of the distribution |D| with
-% parameters |theta| for the given |data|.
-%
-% For information about the parameter input |theta|, see
-% <../distribution_parameters.html Distribution Parameters Structure>. The
-% input argument |data| is described in <../data_input.html Data Input
-% Argument to Functions>.
-%
-% *References*
-%
-% # R. Hosseini, “Natural Image Modelling using Mixture Models with
-% compression as an application,” Berlin, Technische Universtit?t Berlin,
-% Diss., 2012, 2012.
 %
 
     D.AICmc = @AICmc;
@@ -2448,29 +1874,10 @@ function D = mixturefactory(ComponentD, num)
 
 %% |visualize|
 %
-% *Syntax*
-%
-%   handle_array = D.visualize(D, theta, vis_options)
-%
 
     D.visualize = @visualize;
     function [varargout] = visualize(varargin)
         [varargout{1:nargout}] = mixture_visualize(D, varargin{:});
-    end
-
-%% |gaussianize|
-%
-% *Syntax*
-%
-%   y = gaussianize(theta, data)
-%
-
-    D.gaussianize = @gaussianize;
-    function y = gaussianize(theta, data)
-        y = cdf(theta, data);
-        for k = 1: size(y,1)
-            y(k,:) = -sqrt(2).*erfcinv(2*y(k,:));
-        end
     end
 
 

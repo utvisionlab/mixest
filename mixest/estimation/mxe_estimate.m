@@ -138,6 +138,9 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
             struct('data', datamat, 'index', idxTrain, 'weight', weight), batch_index, options);
     end
     
+    % size of idxTrain
+    problem.data_size = length(idxTrain);
+    
     % checkgradient
     if options.checkgradient
         checkgradient(problem);

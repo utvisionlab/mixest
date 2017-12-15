@@ -441,15 +441,22 @@ function D = mvn2factory(datadim)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data)
-        % Using Fraley&Raftery (2007) method for computing parameters
         data = mxe_readdata(data);
         n = data.size;
         data = data.data;
-
-        data = [data; ones(1,n)];
-        penalizer_theta.nu = -1;% datadim - 1;
-        sigmat = (data * data.')/n;
-        % Check if it is multiplication of identity
+        penalizer_theta.kappa = 0.01;
+        penalizer_theta.nu = - datadim - 2 + penalizer_theta.kappa;
+        sigmat = zeros(datadim+1);
+        lam = mean(data, 2);
+        % If no data goes to a component, the covariance would be
+        % sample covaraince dividen by %
+        data = bsxfun(@minus, data, lam);
+        Delta = (data * data.')/n;
+        Delta = Delta * penalizer_theta.kappa;%(datadim + 3 + datadim);
+        sigmat(1:end-1,1:end-1) = Delta + penalizer_theta.kappa*(lam * lam.');
+        sigmat(end,1:end-1) = penalizer_theta.kappa*lam;
+        sigmat(1:end-1, end) = sigmat(end,1:end-1).';
+        sigmat(end,end) = penalizer_theta.kappa;
         if isequal(sigmat, sigmat(1,1) * eye(datadim))
             penalizer_theta.invLambda = sigmat(1,1);
         else
@@ -478,6 +485,7 @@ function D = mvn2factory(datadim)
         else
             costP = costP - 0.5 * (penalizer_theta.invLambda(:).' * Sinv(:));
         end
+
     end
 
 %% |penalizergrad|
