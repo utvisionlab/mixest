@@ -29,7 +29,7 @@ function theta = softmax_estimateMstep(D, data, options)
             data = mxe_readdata(data);
             n = data.size;
             data = data.data;
-            store.dataTW = theta.W * [data(1:datadim,:); zeros(1,n)];
+            store.dataTW = theta.W * [data(1:datadim,:); ones(1,n)];
         end
     end        
 
@@ -110,7 +110,7 @@ function theta = softmax_estimateMstep(D, data, options)
         
         part = data(datadim+2:end,:) - pgate;
         
-        datap = [data(1:datadim,:); zeros(1,n)];
+        datap = [data(1:datadim,:); ones(1,n)];
         
         if ~isempty(weight)
             datap = bsxfun(@times, weight, datap);

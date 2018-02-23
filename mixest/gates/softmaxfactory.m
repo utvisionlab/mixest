@@ -94,7 +94,7 @@ function  D = softmaxfactory(num, datadim)
             data = mxe_readdata(data);
             n = data.size;
             data = data.data;
-            store.dataTW = theta.W * [data(1:datadim,:); zeros(1,n)];
+            store.dataTW = theta.W * [data(1:datadim,:); ones(1,n)];
         end
     end        
 
@@ -187,7 +187,7 @@ function  D = softmaxfactory(num, datadim)
         
         part = store.pcond(2:end,:) - pgate;
         
-        datap = [data(1:datadim,:); zeros(1,n)];
+        datap = [data(1:datadim,:); ones(1,n)];
         
         if ~isempty(weight)
             datap = bsxfun(@times, weight, datap);
@@ -263,7 +263,7 @@ function  D = softmaxfactory(num, datadim)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data) %#ok<INUSD>
-        penalizer_theta = [];
+        penalizer_theta = 1;
     end
 
 %% |penalizercost|
@@ -272,7 +272,7 @@ function  D = softmaxfactory(num, datadim)
     D.penalizercost = @penalizercost;
     function [costP, store] = penalizercost(theta, penalizer_theta, store) %#ok<INUSL>
         
-        costP = 0;
+        costP =  - 0.5 * penalizer_theta * norm(theta.W(:,1:end-1), 'fro')^2;
         if nargin < 3
             store = struct;
         end
@@ -289,7 +289,9 @@ function  D = softmaxfactory(num, datadim)
             store = struct;
         end
         
-        gradP.W = zeros(size(theta.W));
+        
+        gradP.W = - penalizer_theta * theta.W;
+        gradP.W(:,end) = 0;
        
     end
 

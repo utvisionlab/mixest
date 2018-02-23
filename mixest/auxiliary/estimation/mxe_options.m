@@ -69,6 +69,18 @@ function options = mxe_options(options, extra_defaults)
             'mergecriterion', 'kl', ... 'kl', 'overlap', 'rand'
             'splitinit', 'default', ... Split method name or function handle or e.g. options.splitinit.mvn.mu = 'method'
             'mergeinit', 'default' ... Split method name or function handle or e.g. options.mergeinit.mvn.mu = 'method'
+            ), ...
+        ... stochastic gradient descend
+        'sgd', struct(...
+            'base', 1, ... Base for exponential decay
+            'batchnum', 100, ... Number of batches in SGD
+            'epoch', 50, ... Stop as soon as number of epochs reachs epoc
+            'stepsize', 0.1, ... step size in SGD
+            'diminishc', 1000, ... diminishing constant (set to inf if no diminish is used)
+            'power', 1 , ... poer used in diminishing constant
+            'momentum', 0, .... Using momentum
+            'svrg', false, ... Using svrg method
+            'euclidbase', true ... Base SVRG and Momentum of Euclidean way
             ) ...
         ... See also mxe_inneroptions
         );

@@ -51,7 +51,7 @@ function D = mnlfactory(datadim, num)
 %% |M|
 % See <doc_distribution_common.html#2 distribution structure common members>.
 
-    D.M = productmanifold(struct('W', euclideanfactory(num-1, datadim+1)));
+    D.M = mxe_productmanifold(struct('W', euclideanfactory(num-1, datadim+1)));
 
 %% |num|
 % Number of components
@@ -84,7 +84,7 @@ function D = mnlfactory(datadim, num)
         if ~isfield(store, 'logpsum')
             data = mxe_readdata(data);
             
-            store.dataTW = theta.W * [data.data(1:datadim,:);zeros(1,data.size)];
+            store.dataTW = theta.W * [data.data(1:datadim,:);ones(1,data.size)];
             logp = [zeros(1, data.size); store.dataTW];
             store.logpsum = logsumexp(logp);
             
@@ -158,7 +158,7 @@ function D = mnlfactory(datadim, num)
         store = weighting_intermediate_params(theta, data.data, store);
         
         label = data.data(end, :);
-        datap = [data.data(1:end-1, :); zeros(1,data.size)];
+        datap = [data.data(1:end-1, :); ones(1,data.size)];
         if ~isempty(data.weight)
             datap = bsxfun(@times, data.weight, datap);
         end
@@ -183,7 +183,23 @@ function D = mnlfactory(datadim, num)
         
         error('llgraddata not implemented yet');
     end
-    
+
+%% |predict|
+%
+
+    D.predict = @predict;
+    function [label, store] = predict(theta, data, store)
+        data = mxe_readdata(data, false);
+        datam = data.data(1:datadim,:);
+        ps = zeros(num, data.size);
+        for k = 1:num
+            datap = [datam; ones(1, data.size)*k];
+            [pspart, store] = D.llvec(theta, datap);
+            ps(k,:) = pspart;
+        end
+        [notused, label] = max(ps, [], 1);
+    end
+
 %% |pdf|
 % See <doc_distribution_common.html#10 distribution structure common members>.
 
@@ -221,7 +237,7 @@ function D = mnlfactory(datadim, num)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data) %#ok<INUSD>
-        penalizer_theta = [];
+        penalizer_theta = 1;
     end
 
 %% |penalizercost|
@@ -230,7 +246,7 @@ function D = mnlfactory(datadim, num)
     D.penalizercost = @penalizercost;
     function [costP, store] = penalizercost(theta, penalizer_theta, store) %#ok<INUSL>
         
-        costP = 0;
+        costP = - 0.5 * penalizer_theta * norm(theta.W(:,1:end-1), 'fro')^2;
         if nargin < 3
             store = struct;
         end
@@ -246,8 +262,8 @@ function D = mnlfactory(datadim, num)
         if nargin < 3
             store = struct;
         end
-        
-        gradP.W = zeros(size(theta.W));
+        gradP.W = - penalizer_theta * theta.W;
+        gradP.W(:,end) = 0;
        
     end
 

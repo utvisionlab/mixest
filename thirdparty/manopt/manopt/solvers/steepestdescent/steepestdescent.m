@@ -101,7 +101,7 @@ function [x, cost, info, options] = steepestdescent(problem, x, options)
     else
         localdefaults.linesearch = @linesearch_hint;
     end
-    
+
     % Merge global and local defaults, then merge w/ user options, if any.
     localdefaults = mergeOptions(getGlobalDefaults(), localdefaults);
     if ~exist('options', 'var') || isempty(options)

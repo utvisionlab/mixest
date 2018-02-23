@@ -43,4 +43,4 @@ options.tolCostDiff = 1e-3;
 
 
 % run
-cem(data, options)
+splitTmerge(data, 7, options)

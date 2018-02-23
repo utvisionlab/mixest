@@ -34,6 +34,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     data = mxe_readdata(data, false);
     idxAll = data.index;
     datamat = data.data;
+    weight = data.weight;
 
     % get solver handle (if it is not already)
     if ischar(options.solver)
@@ -72,7 +73,8 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
 
     % cross validation init
     if options.crossval.enabled
-        [cv, idxTrain] = mxe_crossvalidation(struct('data',datamat, 'index',idxAll), ...
+        
+        [cv, idxTrain] = mxe_crossvalidation(struct('data',datamat, 'index',idxAll,'weight', weight), ...
             options.crossval.fraction, options.crossval.toliter, ...
             @(theta, data) mxe_costgrad(D, theta, data, options));
     else
@@ -87,6 +89,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     % problem
     %dataTrain = struct('data',datamat, 'index',idxTrain);
     problem.M = D.M;
+    problem.D = D;
     if isfield(options, 'costgrad')
         problem.costgrad = options.costgrad;
     else
@@ -95,15 +98,48 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
     function [cost, grad] = costgrad(theta)
         if nargout > 1
             [cost, grad] = mxe_costgrad(D, theta, ...
-                struct('data',datamat, 'index',idxTrain), options);
+                struct('data',datamat, 'index',idxTrain, 'weight', weight), options);
         else
              cost = mxe_costgrad(D, theta, ...
-                 struct('data',datamat, 'index',idxTrain), options);
+                 struct('data',datamat, 'index',idxTrain, 'weight', weight), options);
         end
     end
     % Adding store in costgrad decreases the speed in line search
     %problem.costgrad = @(theta, store) mxe_costgrad(D, theta, dataTrain, options, store);
+    
+    if isfield(options, 'ecostgrad')
+        problem.ecostgrad = options.ecostgrad;
+    else
+        problem.ecostgrad = @ecostgrad;
+    end
+    function [cost, grad] = ecostgrad(theta)
+        if nargout > 1
+            [cost, grad] = mxe_ecostgrad(D, theta, ...
+                struct('data',datamat, 'index',idxTrain), options);
+        else
+             cost = mxe_ecostgrad(D, theta, ...
+                 struct('data',datamat, 'index',idxTrain), options);
+        end
+    end
 
+    % Computing gradient of batch needed for stochastic optimization
+    if isfield(options, 'gradbatch')
+        problem.gradbatch = options.gradbatch;
+    else
+        problem.gradbatch = @(theta, batch_index) mxe_gradbatch(D, theta, ...
+            struct('data', datamat, 'index', idxTrain, 'weight', weight), batch_index, options);
+    end
+    
+    % Computing gradient of batch needed for stochastic optimization
+    if isfield(options, 'egradbatch')
+        problem.egradbatch = options.egradbatch;
+    else
+        problem.egradbatch = @(theta, batch_index) mxe_egradbatch(D, theta, ...
+            struct('data', datamat, 'index', idxTrain, 'weight', weight), batch_index, options);
+    end
+    
+    % size of idxTrain
+    problem.data_size = length(idxTrain);
     
     % checkgradient
     if options.checkgradient
@@ -136,7 +172,7 @@ function [theta, D, info, options] = mxe_estimate(D, data, options)
 
     % theta0
     if isempty(options.theta0) && isfield(D, 'init')
-        options.theta0 = D.init(struct('data',datamat, 'index',idxTrain));
+        options.theta0 = D.init(struct('data',datamat, 'index',idxTrain, 'weight', weight));
     end % else Manopt will generate a random theta0 if it is empty
     
     % TODO: Update manopt optimization algorithms of takig curiter into account

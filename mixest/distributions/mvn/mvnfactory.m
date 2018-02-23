@@ -76,7 +76,7 @@ function D = mvnfactory(datadim)
 
     muM = euclideanfactory(datadim);
     sigmaM = spdfactory(datadim);
-    D.M = productmanifold(struct('mu', muM, 'sigma', sigmaM));
+    D.M = mxe_productmanifold(struct('mu', muM, 'sigma', sigmaM));
 
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.
@@ -442,17 +442,24 @@ function D = mvnfactory(datadim)
         data = mxe_readdata(data);
         n = data.size;
         data = data.data;
-
-        penalizer_theta.kappa = 0; %0.1;
-        penalizer_theta.nu = - datadim; %-1; %2;
+        
+        penalizer_theta.kappa = 0.01; 
         penalizer_theta.mu = sum(data, 2)/n;
         data = bsxfun(@minus, data, penalizer_theta.mu);
-        sigma = (data * data.')/n;
+        if false
+            penalizer_theta.nu = datadim + 2;
+            sigma = (data * data.')/n/datadim; %Gorur and Rasmussen
+        else 
+            % Procedure of riemmix paper
+            penalizer_theta.nu = - datadim - 2 + penalizer_theta.kappa;
+            sigma = (data * data.')/n;
+            sigma = sigma * penalizer_theta.kappa;
+        end
         % Check if it is multiplication of identity
         if isequal(sigma, sigma(1,1) * eye(datadim))
-            penalizer_theta.invLambda = sigma(1,1);
+            penalizer_theta.invLambda = (sigma(1,1));
         else
-            penalizer_theta.invLambda = sigma;
+            penalizer_theta.invLambda = (sigma);
         end
     end
 

@@ -38,7 +38,7 @@ function [stepsize newx storedb lsmem lsstats] = ...
     % options structure which is passed to the solver.
     default_options.ls_contraction_factor = .5;
     default_options.ls_suff_decr = .5;
-    default_options.ls_max_steps = 10;
+    default_options.ls_max_steps = 100;
     default_options.ls_initial_stepsize = 1;
     options = mergeOptions(default_options, options);
     
@@ -66,6 +66,24 @@ function [stepsize newx storedb lsmem lsstats] = ...
     [newf storedb] = getCost(problem, newx, storedb);
     cost_evaluations = 1;
     
+    % Check if new point is illegal
+    while is_illegal(newf)
+        
+        % Reduce the step size,
+        alpha = 0.1 * alpha;
+        
+        % and look closer down the line
+        newx = problem.M.retr(x, d, alpha);
+        [newf storedb] = getCost(problem, newx, storedb);
+        cost_evaluations = cost_evaluations + 1;
+        
+        % Make sure we don't run out of budget
+        if cost_evaluations >= max_ls_steps
+            break;
+        end
+        
+    end
+    
     % Backtrack while the Armijo criterion is not satisfied
     while newf > f0 + suff_decr*alpha*df0
         
@@ -84,8 +102,8 @@ function [stepsize newx storedb lsmem lsstats] = ...
         
     end
     
-    % If we got here without obtaining a decrease, we reject the step.
-    if newf > f0
+    % If we got here without obtaining a decrease, we reject the step.  
+    if newf > f0 || is_illegal(newf)
         alpha = 0;
         newx = x;
         newf = f0; %#ok<NASGU>
@@ -119,4 +137,9 @@ function [stepsize newx storedb lsmem lsstats] = ...
     lsstats.stepsize = stepsize;
     lsstats.alpha = alpha;
     
+end
+
+function ilegal = is_illegal(x)
+    x = obj2vec(x);
+    ilegal = any(imag(x(:))) | any(isnan(x(:))) | any(isinf(x(:)));
 end

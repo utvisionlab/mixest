@@ -42,7 +42,7 @@ function D = cmvn2factory(datadim, conddim)
 
     %W = euclideanfactory(conddim, datadim+1);
     sigmaT = spdfactory(conddim + datadim + 1);
-    D.M = productmanifold(struct('sigmat', sigmaT));
+    D.M = mxe_productmanifold(struct('sigmat', sigmaT));
 
 %% |dim|
 % See <doc_distribution_common.html#3 distribution structure common members>.

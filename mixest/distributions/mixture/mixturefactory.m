@@ -270,18 +270,23 @@ function D = mixturefactory(ComponentD, num)
         end
         
         if homogeneous
-            varM = powermanifold(ComponentD.M, num);
+            %varM = powermanifold(ComponentD.M, num);
+            varM = mxe_powermanifold(ComponentD.M, num);
         else
             elements = cell(num, 1);
             for k = 1:num
                 elements{k} = varD{k}.M;
+                %elements{k} = mxe_addsharedmanifold(varD{k}.M);
             end
-            varM = mxe_productmanifold(elements);
+            varM = mxe_product2manifold(elements);
         end
         % When having fixed components, p(num+1) is the global weight for fixedtheta.p
         % Note: fixedtheta.p always sums to 1
-        p = simplexfactory(nump);
-        M = productmanifold(struct('D', varM, 'p', p));
+        
+        %p = simplexfactory(nump);
+        %M = productmanifold(struct('D', varM, 'p', p));
+        p = mxe_addsharedmanifold(simplexfactory(nump));
+        M = mxe_productmanifold(struct('D', varM, 'p', p));
     end
 
     % from here on use Components{k} to access k'th component irrespective
@@ -1537,7 +1542,7 @@ function D = mixturefactory(ComponentD, num)
         if ~isempty(weight)
             component_weights = bsxfun(@times, component_weights, weight);
         end
-        low_memory = true;
+        % low_memory = true; This Line makes the speed 2 times slower
         if low_memory
             store = rmfield(store,'hX');
             %store = rmfield(store,'llik');
@@ -1929,7 +1934,7 @@ function D = mixturefactory(ComponentD, num)
 
     D.penalizerparam = @penalizerparam;
     function penalizer_theta = penalizerparam(data)
-        penalizer_theta.phi = ones(nump,1);
+        penalizer_theta.phi = ones(nump,1) * 2;
         for k = 1:num
             penalizer_theta.D{k} = Components{k}.penalizerparam(data);
         end
@@ -2096,7 +2101,7 @@ function D = mixturefactory(ComponentD, num)
         dreg = dreg - dreg2;
         % based on regularization gradient update the component weighting
         weight_mod = bsxfun(@times, dreg, component_weights);
-        common_part = col_sum(weight_mod);
+        common_part = sum(weight_mod, 1);
         
         component_weights = component_weights+ weight_mod - ...
             bsxfun(@times, component_weights, common_part);

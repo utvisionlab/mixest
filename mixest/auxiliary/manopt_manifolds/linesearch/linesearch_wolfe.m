@@ -1,5 +1,5 @@
 function [stepsize newx storedb lsmem lsstats] = ...
-       linesearch_wolfe(problem, x, d, f0, df0, options, storedb, lsmem)
+       linesearch_wolfe(problem, x, d, f0, df0, options, storedb, lsmem, grad)
 % Adaptive line search algorithm (step size selection) for descent methods.
 %
 % function [stepsize newx storedb lsmem lsstats] = 
@@ -78,15 +78,26 @@ function [stepsize newx storedb lsmem lsstats] = ...
     alpha = 0;
     debug = false;
     f = f0;
-    newx = problem.M.retr(x, d, new_alpha);
     first_run = false; %Do not Evaluate Gradient in first runs
+    if isfield(problem.M, 'retrtransp') && ~first_run
+        %store = struct;
+        %problem.M
+        [newx, newd, store] = ...
+            problem.M.retrtransp (x, d, d, new_alpha);
+        %newd
+        %store
+        %pause
+    else
+        newx = problem.M.retr(x, d, new_alpha);
+        newd = '';
+    end
     if first_run
         new_df = -1;
         [new_f storedb] = getCost(problem, newx, storedb);
     else
         [new_f new_grad storedb] = getCostGrad(problem, newx, storedb);
         if ~is_illegal(new_f)
-            new_df = calcDf(M, x, newx, d, new_grad);
+            new_df = calcDf(M, x, newx, d, new_grad, newd);
         end
     end
 
@@ -145,7 +156,7 @@ function [stepsize newx storedb lsmem lsstats] = ...
             end
             if first_run
                 [new_grad storedb] = getGradient(problem, newx, storedb);
-                new_df = calcDf(M, x, newx, d, new_grad);
+                new_df = calcDf(M, x, newx, d, new_grad, '');
                 points = [alpha f df0; new_alpha new_f new_df];
                 first_run = false;
             end
@@ -172,11 +183,19 @@ function [stepsize newx storedb lsmem lsstats] = ...
         alpha = new_alpha;
         new_alpha = polyinterp(points, do_plot, min_alpha, max_alpha);
         % moving along geodesic to find the new point
-        newx = problem.M.retr(x, d, new_alpha);
+        if isfield(problem.M, 'retrtransp') && ~first_run
+            %store = struct;
+            [newx, newd] = ...
+                problem.M.retrtransp (x, d, d, new_alpha, store);
+        else
+            newx = problem.M.retr(x, d, new_alpha);
+            newd = '';
+        end
+        %newx = problem.M.retr(x, d, new_alpha);
         f = new_f;
         df = new_df;
         [new_f new_grad storedb] = getCostGrad(problem, newx, storedb);
-        new_df = calcDf(M, x, newx, d, new_grad);
+        new_df = calcDf(M, x, newx, d, new_grad, newd);
         points = [alpha f df; new_alpha new_f new_df];
     end
     
@@ -211,14 +230,23 @@ function [stepsize newx storedb lsmem lsstats] = ...
                 new_alpha = min(points(:,1)) + 0.1*interval;
             end
         end
-        newx = problem.M.retr(x, d, new_alpha);
+        if isfield(problem.M, 'retrtransp') && ~first_run
+            %store = struct;
+            [newx, newd] = ...
+                problem.M.retrtransp (x, d, d, new_alpha, store);
+        else
+            newx = problem.M.retr(x, d, new_alpha);
+            newd = '';
+        end
+        %newx = problem.M.retr(x, d, new_alpha);
         if first_run
             [new_f storedb] = getCost(problem, newx, storedb);
             new_df = -1;
         else
             [new_f new_grad storedb] = getCostGrad(problem, newx, storedb);
-            new_d = M.transp(x, newx, d);
-            new_df = M.inner(newx, new_d, new_grad);
+            new_df = calcDf(M, x, newx, d, new_grad, newd);
+            %new_d = M.transp(x, newx, d);
+            %new_df = M.inner(newx, new_d, new_grad);
         end
 
         if (new_f > f0 + new_alpha*suff_decr*df0 || new_f >= low_f) && new_f > bestf
@@ -230,8 +258,9 @@ function [stepsize newx storedb lsmem lsstats] = ...
         else
             if first_run
                 [new_grad storedb] = getGradient(problem, newx, storedb);
-                new_d = M.transp(x, newx, d);
-                new_df = M.inner(newx, new_d, new_grad);
+                new_df = calcDf(M, x, newx, d, new_grad, newd);
+                %new_d = M.transp(x, newx, d);
+                %new_df = M.inner(newx, new_d, new_grad);
                 first_run = false;
             end
             if abs(new_df) <= -wolfe_cte*df0
@@ -269,8 +298,13 @@ function [stepsize newx storedb lsmem lsstats] = ...
     lsmem.grad = new_grad;
     lsmem.f0 = f0;
     lsmem.df0 = df0;
+    lsmem.newd = newd;
+    % BUG: without d, new_alpha and store, it works fine
+    lsmem.transg = problem.M.transp(x, newx, grad, d, new_alpha, store); %
     lsmem.alpha = new_alpha;
-    
+    if debug
+        ls_iter
+    end
     % As seen outside this function, stepsize is the size of the vector we
     % retract to make the step from x to newx. 
     stepsize = new_alpha;
@@ -287,7 +321,10 @@ function ilegal = is_illegal(x)
     ilegal = any(imag(x(:))) | any(isnan(x(:))) | any(isinf(x(:)));
 end
 
-function  new_df = calcDf(M, x, newx, d, new_grad)
-    new_d = M.transp(x, newx, d);
+function  [new_df, new_d] = calcDf(M, x, newx, d, new_grad, new_d)
+    if isempty(new_d)
+        new_d = M.transp(x, newx, d);
+        pause
+    end
     new_df = M.inner(newx, new_d, new_grad);
 end

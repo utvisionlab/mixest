@@ -29,6 +29,8 @@ function h = mxe_getsolverhandle(solverName)
             h = @trustregions;
         case {'sd', 'gd', 'steepestdescent', 'gradientdescent'}
             h = @steepestdescent; 
+        case {'sgd', 'stochasticgradientdescent'}
+            h = @sgd; 
         %TODO
         otherwise
             error('Solver "%s" not defined in mxe_getsolverhandle.', solverName)

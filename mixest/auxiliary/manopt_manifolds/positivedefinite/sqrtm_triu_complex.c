@@ -45,7 +45,7 @@ void mexFunction(int nlhs, mxArray *plhs[],
     /* copy T into Ts to speed up memory access */
     //memcpy(Ts, T, m*n*sizeof(double));
     for(j=0;j<n;j++) {
-        for(i=j;i>=0;i--) {
+        for(i=j-1;i>=0;i--) {
             *(Sr + i + m*j) = *(Tr + i + m*j);
             *(Si + i + m*j) = *(Ti + i + m*j);
         }
@@ -84,11 +84,20 @@ void mexFunction(int nlhs, mxArray *plhs[],
             
             absval = denumreal*denumreal + denumimag*denumimag;
             
-            *(Sr+i+m*j) = (numreal * denumreal + numimag * denumimag)/
-                    absval;
+            //*(Sr+i+m*j) = (numreal*denumreal + numimag*denumimag)/absval;
+            //*(Si+i+m*j) = (numimag*denumreal - numreal*denumimag)/absval;
             
-            *(Si+i+m*j) = (numimag * denumreal - numreal * denumimag)/
-                    absval;
+            // Instead of the above line, use following to solve 0/0
+            sreal = numreal*denumreal + numimag*denumimag;
+            simag = numimag*denumreal - numreal*denumimag;
+            if(sreal == 0)
+                *(Sr+i+m*j) =  0;
+            else
+                *(Sr+i+m*j) = sreal / absval;
+            if(simag == 0)
+                *(Si+i+m*j) =  0;
+            else
+                *(Si+i+m*j) = simag / absval;
             
         }
     }

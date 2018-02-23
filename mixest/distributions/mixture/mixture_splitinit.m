@@ -61,28 +61,42 @@ function [theta, store] = mixture_splitinit(D, idx, theta, options, data, store)
     else
         % if the component distribution does not define a 'selfsplit'
         % function, we add random values to each parameter
-        if true
-            DidxM = Didx.M;
-            DidxRandvec = DidxM.randvec(theta.D{idx});
-            theta.D{end} = DidxM.retr(theta.D{idx},DidxRandvec, 2e-3);
-            theta.D{idx} = DidxM.retr(theta.D{idx},DidxRandvec, 1e-3);
-        else
-            for m = 1 : numel(param_names)
-                param_name = param_names{m};
-                method = get_method(options_splitinit, DidxName, param_name);
-                
-                if strcmp(method, 'default')
+        
+        for m = 1 : numel(param_names)
+            param_name = param_names{m};
+            method = get_method(options_splitinit, DidxName, param_name);
+            
+            if strcmp(method, 'default')
+                if true
+                    options.verbosity = 0;
+                    DidxM = D.component(idx);
+                    % penalizer_theta
+                    if options.penalize
+                        if isempty(options.penalizertheta)
+                            options.penalizertheta = DidxM.penalizerparam(data);
+                        end
+                    end
+                    data = mxe_readdata(data);
+                    h = D.weighting(theta, data);
+                    w = rand(1, data.size);
+                    data.weight = w.*(h(idx,:)+0.1);
+                    options.theta0 = theta.D{idx};
+                    theta.D{end} = DidxM.estimate(data, options);
+                    data.weight = (1-w).*(h(idx,:)+0.1);
+                    theta.D{idx} = DidxM.estimate(data, options);
+                else
                     oldvalue = theta.D{idx}.(param_name);
                     value1 = oldvalue + rand(size(oldvalue)) * norm(oldvalue); %TODO what amount of noise is best?
                     value2 = oldvalue + rand(size(oldvalue)) * norm(oldvalue);
                     
                     theta.D{idx}.(param_name) = value1;
                     theta.D{end}.(param_name) = value2;
-                else
-                    error('mixture.splitinit: Method ''%s'' not recognized for component(%d) parameter ''%s''', method, idx, param_name)
                 end
+            else
+                error('mixture.splitinit: Method ''%s'' not recognized for component(%d) parameter ''%s''', method, idx, param_name)
             end
         end
+
     end
     
 %%
