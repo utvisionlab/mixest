@@ -72,15 +72,15 @@
 D.name()
 </pre><pre>ans =
      mvn</pre><h2><tt>M</tt><a id="2"></a></h2><p>Distribution parameter manifold.</p><p><b>Syntax</b></p><pre class="language-matlab">D.M
-</pre><p><b>Example</b></p><pre class="language-matlab">D = mvnfactory(2);
+</pre><p><b>Description</b></p><p><tt>D.M</tt> contains the <a href="http://manopt.org">Manopt</a> manifold structure corresponding to the parameters of the distribution <tt>D</tt>.</p><p><b>Example</b></p><pre class="language-matlab">D = mvnfactory(2);
 D.M.name()
 </pre><pre>ans =
-     Product manifold: [mu: Euclidean space R^(2x1)] x [sigma: SPD manifold (2, 2)]</pre><h2><tt>dim</tt><a id="3"></a></h2><p>Parameter space dimensions</p><p><b>Syntax</b></p><pre class="language-matlab">dim = D.dim()
-</pre><p><b>Description</b></p><p><tt>dim = D.dim()</tt> returns the dimensions of the parameter space of the distribution <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><p>The parameter space dimensions of a multi-variate normal distribution defined over a 2-dimensional data space is 6: 2 for the mean vector and 4 for the 2-by-2 covariance matrix.</p><pre class="language-matlab">D = mvnfactory(2);
+     Product manifold: [mu: Euclidean space R^(2x1)] x [sigma: SPD manifold (2, 2)]</pre><h2><tt>dim</tt><a id="3"></a></h2><p>Parameter-space dimensions</p><p><b>Syntax</b></p><pre class="language-matlab">dim = D.dim()
+</pre><p><b>Description</b></p><p><tt>dim = D.dim()</tt> returns the dimensions of the parameter space of the distribution <tt>D</tt>.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><p>The parameter space dimensions of a multi-variate normal distribution defined over a 2-dimensional data space is six: two for the mean vector and four for the 2-by-2 covariance matrix.</p><pre class="language-matlab">D = mvnfactory(2);
 dim = D.dim()
 </pre><pre class="language-matlab">dim =
      6
-</pre><h2><tt>datadim</tt><a id="4"></a></h2><p>Data space dimensions</p><p><b>Syntax</b></p><pre class="language-matlab">n = D.datadim()
+</pre><h2><tt>datadim</tt><a id="4"></a></h2><p>Data-space (sample) dimensions</p><p><b>Syntax</b></p><pre class="language-matlab">n = D.datadim()
 </pre><p><b>Description</b></p><p><tt>n = D.datadim()</tt> returns the dimensions of the data space where the distribution <tt>D</tt> is defined.</p><p><b>Note:</b> You need to include the parentheses <tt>()</tt> for this to work.</p><p><b>Example</b></p><p>The following example creates a multi-variate normal distribution defined over a 2-dimensional data space and calls <tt>datadim</tt> to get its data-space dimensions.</p><pre class="language-matlab">D = mvnfactory(2);
 n = D.datadim()
 </pre><pre class="language-matlab">n =
@@ -260,7 +260,7 @@ data = randn(2, 1000);
 bic = D.ll(theta, data) + D.BIC(data)
 </pre><h2><tt>display</tt><a id="26"></a></h2><p>Display parameter values</p><p><b>Syntax</b></p><pre class="language-matlab">str = D.display(theta)
 D.display(theta)
-</pre><p><b>Description</b></p><p><tt>str = display(theta)</tt> returns a string containing information about the parameter values in <tt>theta</tt>.</p><p><tt>D.display(theta)</tt> displays the distribution name along with information about the parameter values in <tt>theta</tt>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and parameter structure</span>
+</pre><p><b>Description</b></p><p><tt>str = D.display(theta)</tt> returns a string containing information about the parameter values in <tt>theta</tt>.</p><p><tt>D.display(theta)</tt> displays the distribution name along with information about the parameter values in <tt>theta</tt>.</p><p>For information about the parameter input <tt>theta</tt>, see <a href="../distribution_parameters.html">Distribution Parameters Structure</a>.</p><p><b>Example</b></p><pre class="language-matlab"><span class="comment">% create a distribution and parameter structure</span>
 D = mvnfactory(1);
 theta = struct(<span class="string">'mu'</span>, [0;0], <span class="string">'sigma'</span>, [2 1;3 4]);
 <span class="comment">% display parameter values</span>
