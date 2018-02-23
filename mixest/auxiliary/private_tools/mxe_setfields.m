@@ -41,7 +41,7 @@ function options = mxe_setfields(options, given_options)
         if issuboption && numel(given_options.(fn)) > 1 % for info structs passed as options (previnfo)
             issuboption = false;
         end
-        if issuboption && isfield(given_options.(fn), 'name') % for distribution structs passed as options (we shouldn'd make their field names lower case)
+        if issuboption && isfield(given_options.(fn), 'name') % for distribution structs passed as options (we shouldn't make their field names lower case)
             issuboption = false;
         end
         
