@@ -362,8 +362,8 @@ disp(mxe_htmltable(T))
 %
 % *The basics*
 %
-% We can create a mixture of |K| Gaussians on a |d|-dimensional data like
-% this:
+% We can create a mixture of |K| Gaussians on a |d|-dimensional sample
+% space like this:
 %
 %   D = mixturefactory(mvnfactory(d), K)
 %

@@ -45,7 +45,7 @@
 %
 % * *|tolCostDiff|* (default |0|) : Minimum decrease in cost to accept a
 % split.
-% * *|numMax|* (default |2*target_num|) : Maximum number of mixture components.
+% * *|numMax|* (default |1.6*target_num|) : Maximum number of mixture components.
 % * *|componentD|* (default MVN distribution) : distribution structure
 % defining the mixture component distribution type.
 %

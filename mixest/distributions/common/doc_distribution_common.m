@@ -32,6 +32,11 @@
 %
 %   D.M
 %
+% *Description*
+%
+% |D.M| contains the <http://manopt.org Manopt> manifold structure
+% corresponding to the parameters of the distribution |D|.
+%
 % *Example*
 %
 %   D = mvnfactory(2);
@@ -42,7 +47,7 @@
 %
 
 %% |dim|
-% Parameter space dimensions
+% Parameter-space dimensions
 %
 % *Syntax*
 %
@@ -58,8 +63,8 @@
 % *Example*
 %
 % The parameter space dimensions of a multi-variate normal distribution
-% defined over a 2-dimensional data space is 6: 2 for the mean vector and 4
-% for the 2-by-2 covariance matrix.
+% defined over a 2-dimensional data space is six: two for the mean vector
+% and four for the 2-by-2 covariance matrix.
 %
 %   D = mvnfactory(2);
 %   dim = D.dim()
@@ -69,7 +74,7 @@
 %
 
 %% |datadim|
-% Data space dimensions
+% Data-space (sample) dimensions
 %
 % *Syntax*
 %
@@ -785,8 +790,8 @@
 %
 % *Description*
 %
-% |str = display(theta)| returns a string containing information about the
-% parameter values in |theta|.
+% |str = D.display(theta)| returns a string containing information about
+% the parameter values in |theta|.
 %
 % |D.display(theta)| displays the distribution name along with information
 % about the parameter values in |theta|.
